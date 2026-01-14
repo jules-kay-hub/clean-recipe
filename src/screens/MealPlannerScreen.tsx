@@ -27,6 +27,7 @@ import {
   Button,
   Card,
 } from '../components/ui';
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 type MealPlannerNavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList, 'MealPlanner'>,
@@ -271,7 +272,7 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
                         style={[styles.recipeName, { color: colors.text }]}
                         numberOfLines={2}
                       >
-                        {meal.recipeName}
+                        {decodeHtmlEntities(meal.recipeName)}
                       </Text>
                       <View style={styles.mealActions}>
                         <Pressable

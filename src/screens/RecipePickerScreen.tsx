@@ -19,6 +19,7 @@ import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, borderRadius, typography, shadows } from '../styles/theme';
 import { Spinner } from '../components/ui';
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 interface RecipePickerScreenProps {
   route: {
@@ -124,7 +125,7 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
             style={[styles.title, { color: colors.text }]}
             numberOfLines={2}
           >
-            {item.title}
+            {decodeHtmlEntities(item.title)}
           </Text>
 
           <View style={styles.metaRow}>

@@ -5,6 +5,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, touchTargets } from '../styles/theme';
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 interface IngredientItemProps {
   text: string;
@@ -99,7 +100,7 @@ export function IngredientItem({
           ]}
           numberOfLines={2}
         >
-          {unit ? `${unit} ` : ''}{item || text}
+          {unit ? `${unit} ` : ''}{decodeHtmlEntities(item || text)}
         </Text>
       </View>
     </Pressable>

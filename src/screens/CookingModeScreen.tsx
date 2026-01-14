@@ -20,34 +20,7 @@ import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, typography, borderRadius } from '../styles/theme';
 import { Spinner } from '../components/ui';
-
-// Decode HTML entities in text
-function decodeHtmlEntities(text: string): string {
-  if (!text) return text;
-  let result = text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&mdash;/g, '\u2014')
-    .replace(/&ndash;/g, '\u2013')
-    .replace(/&lsquo;/g, '\u2018')
-    .replace(/&rsquo;/g, '\u2019')
-    .replace(/&ldquo;/g, '\u201C')
-    .replace(/&rdquo;/g, '\u201D');
-
-  result = result.replace(/&#(\d+);/g, (_, code) =>
-    String.fromCharCode(parseInt(code, 10))
-  );
-  result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, code) =>
-    String.fromCharCode(parseInt(code, 16))
-  );
-
-  return result;
-}
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 interface CookingModeScreenProps {
   route: {

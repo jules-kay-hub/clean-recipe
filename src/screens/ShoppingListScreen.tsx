@@ -31,6 +31,7 @@ import {
   EmptyState,
   Spinner,
 } from '../components/ui';
+import { decodeHtmlEntities } from '../utils/textUtils';
 
 type ShoppingListNavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList, 'ShoppingList'>,
@@ -373,7 +374,7 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
                                 },
                               ]}
                             >
-                              {item.ingredient}
+                              {decodeHtmlEntities(item.ingredient)}
                             </Text>
                           </View>
                           {item.recipes.length > 0 && (
@@ -386,8 +387,8 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
                               }}
                             >
                               {item.recipes.length > 2
-                                ? `${item.recipes.slice(0, 2).join(', ')} +${item.recipes.length - 2} more`
-                                : item.recipes.join(', ')
+                                ? `${item.recipes.slice(0, 2).map(decodeHtmlEntities).join(', ')} +${item.recipes.length - 2} more`
+                                : item.recipes.map(decodeHtmlEntities).join(', ')
                               }
                             </Caption>
                           )}
