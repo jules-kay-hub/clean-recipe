@@ -1,0 +1,27 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- CleanRecipe Simplified Icon - For small sizes/favicon -->
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="#FAF8F5"/>
+
+  <!-- Simplified leaf-spoon shape -->
+  <path d="M50 10
+           C72 10, 88 28, 88 52
+           C88 72, 72 85, 56 85
+           L56 92
+           C56 94.5, 53.5 96, 50 96
+           C46.5 96, 44 94.5, 44 92
+           L44 85
+           C28 85, 12 72, 12 52
+           C12 28, 28 10, 50 10 Z"
+        fill="#5C7C5A"/>
+
+  <!-- Simple center vein -->
+  <line x1="50" y1="20" x2="50" y2="72"
+        stroke="#4A6548"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <!-- Terracotta dot -->
+  <circle cx="50" cy="20" r="4" fill="#C4704E"/>
+</svg>

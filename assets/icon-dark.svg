@@ -1,0 +1,62 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- CleanRecipe App Icon - Dark Mode Variant -->
+
+  <!-- Dark background with rounded corners -->
+  <rect width="1024" height="1024" rx="224" fill="#1A1A1A"/>
+
+  <!-- Main leaf-spoon shape (lighter sage) -->
+  <path d="M512 100
+           C700 100, 850 270, 850 490
+           C850 670, 700 800, 570 800
+           L570 900
+           C570 930, 545 950, 512 950
+           C479 950, 454 930, 454 900
+           L454 800
+           C324 800, 174 670, 174 490
+           C174 270, 324 100, 512 100 Z"
+        fill="#7A9E78"/>
+
+  <!-- Leaf center vein -->
+  <path d="M512 180 L512 680"
+        stroke="#5C7C5A"
+        stroke-width="18"
+        stroke-linecap="round"
+        fill="none"/>
+
+  <!-- Right side veins -->
+  <path d="M512 280 Q600 340, 660 450"
+        stroke="#5C7C5A"
+        stroke-width="10"
+        stroke-linecap="round"
+        fill="none"/>
+  <path d="M512 420 Q580 470, 620 550"
+        stroke="#5C7C5A"
+        stroke-width="10"
+        stroke-linecap="round"
+        fill="none"/>
+  <path d="M512 540 Q560 580, 580 640"
+        stroke="#5C7C5A"
+        stroke-width="10"
+        stroke-linecap="round"
+        fill="none"/>
+
+  <!-- Left side veins -->
+  <path d="M512 280 Q424 340, 364 450"
+        stroke="#5C7C5A"
+        stroke-width="10"
+        stroke-linecap="round"
+        fill="none"/>
+  <path d="M512 420 Q444 470, 404 550"
+        stroke="#5C7C5A"
+        stroke-width="10"
+        stroke-linecap="round"
+        fill="none"/>
+  <path d="M512 540 Q464 580, 444 640"
+        stroke="#5C7C5A"
+        stroke-width="10"
+        stroke-linecap="round"
+        fill="none"/>
+
+  <!-- Terracotta light accent at top -->
+  <circle cx="512" cy="180" r="28" fill="#D4896A"/>
+</svg>
