@@ -306,8 +306,21 @@ async function executeToolCall(
       );
       if (result.success && result.html) {
         context.fetchedHtml = result.html;
+        // Don't return full HTML to Claude - it's too large!
+        // Return only metadata; extraction tools will use context.fetchedHtml
+        return {
+          success: true,
+          statusCode: result.statusCode,
+          contentType: result.contentType,
+          htmlLength: result.html.length,
+          message: "Page fetched successfully. Use extract_schema_recipe, extract_with_selectors, or extract_generic to extract the recipe.",
+        };
       }
-      return result;
+      return {
+        success: false,
+        error: result.error,
+        statusCode: result.statusCode,
+      };
     }
 
     // ─────────────────────────────────────────────────────────────────────────
