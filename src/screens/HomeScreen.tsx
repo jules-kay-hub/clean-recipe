@@ -20,6 +20,7 @@ import { spacing } from '../styles/theme';
 import { ScreenTitle, Caption, EmptyState, Spinner } from '../components/ui';
 import { URLInput } from '../components/URLInput';
 import { RecipeCard } from '../components/RecipeCard';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface HomeScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
@@ -32,6 +33,11 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [extractError, setExtractError] = useState<string | undefined>();
   const [isExtracting, setIsExtracting] = useState(false);
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    visible: boolean;
+    recipeId: string | null;
+    recipeName: string;
+  }>({ visible: false, recipeId: null, recipeName: '' });
 
   // Fetch recipes and get/create demo user
   const extractRecipe = useAction(api.extraction.extractRecipe);
@@ -96,17 +102,37 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
     navigation.navigate('RecipeDetail', { recipeId });
   };
 
-  const handleDeleteRecipe = async (recipeId: string) => {
+  const handleDeleteRecipe = (recipeId: string) => {
     if (!userId) return;
+
+    // Find recipe title for confirmation message
+    const recipe = recipes.find((r) => r._id === recipeId);
+    const recipeName = recipe?.title || 'this recipe';
+
+    setDeleteConfirm({
+      visible: true,
+      recipeId,
+      recipeName,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!userId || !deleteConfirm.recipeId) return;
 
     try {
       await deleteRecipe({
-        id: recipeId as Id<"recipes">,
+        id: deleteConfirm.recipeId as Id<"recipes">,
         userId,
       });
     } catch (error) {
       console.error('Failed to delete recipe:', error);
+    } finally {
+      setDeleteConfirm({ visible: false, recipeId: null, recipeName: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ visible: false, recipeId: null, recipeName: '' });
   };
 
   return (
@@ -170,6 +196,18 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         )}
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        visible={deleteConfirm.visible}
+        title="Delete Recipe"
+        message={`Are you sure you want to delete "${deleteConfirm.recipeName}"? This cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        destructive
+      />
     </SafeAreaView>
   );
 }

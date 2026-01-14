@@ -2,7 +2,7 @@
 // Recipe card component for the home screen grid
 
 import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows } from '../styles/theme';
 
@@ -17,6 +17,53 @@ interface RecipeCardProps {
   onDelete?: (id: string) => void;
 }
 
+// Web-specific delete button component
+function DeleteButton({ onDelete }: { onDelete: () => void }) {
+  if (Platform.OS === 'web') {
+    // Use a native button element for web to properly handle click events
+    return (
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onDelete();
+        }}
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 14,
+          backgroundColor: 'rgba(220, 53, 69, 0.85)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 2px 3px rgba(0,0,0,0.25)',
+        }}
+      >
+        <span style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>✕</span>
+      </div>
+    );
+  }
+
+  // Native platforms use TouchableOpacity
+  return (
+    <TouchableOpacity
+      onPress={onDelete}
+      activeOpacity={0.7}
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: 'rgba(220, 53, 69, 0.85)',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>✕</Text>
+    </TouchableOpacity>
+  );
+}
+
 export function RecipeCard({
   id,
   title,
@@ -29,11 +76,6 @@ export function RecipeCard({
 }: RecipeCardProps) {
   const colors = useColors();
   const totalTime = (prepTime || 0) + (cookTime || 0);
-
-  const handleDelete = (e: { stopPropagation?: () => void }) => {
-    e.stopPropagation?.();
-    onDelete?.(id);
-  };
 
   return (
     <Pressable
@@ -64,19 +106,9 @@ export function RecipeCard({
 
         {/* Delete Button */}
         {onDelete && (
-          <Pressable
-            onPress={handleDelete}
-            style={({ pressed }) => [
-              styles.deleteButton,
-              {
-                backgroundColor: pressed ? 'rgba(220, 53, 69, 0.95)' : 'rgba(220, 53, 69, 0.85)',
-                transform: [{ scale: pressed ? 0.9 : 1 }],
-              },
-            ]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.deleteIcon}>✕</Text>
-          </Pressable>
+          <View style={styles.deleteButtonWrapper}>
+            <DeleteButton onDelete={() => onDelete(id)} />
+          </View>
         )}
       </View>
 
@@ -128,25 +160,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  deleteButton: {
+  deleteButtonWrapper: {
     position: 'absolute',
     top: spacing.sm,
     right: spacing.sm,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  deleteIcon: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
+    zIndex: 10,
   },
   image: {
     width: '100%',
