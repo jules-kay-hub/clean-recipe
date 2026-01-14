@@ -16,6 +16,7 @@ import { MealPlannerScreen } from '../screens/MealPlannerScreen';
 import { ShoppingListScreen } from '../screens/ShoppingListScreen';
 import { ExtractingScreen } from '../screens/ExtractingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { CookingModeScreen } from '../screens/CookingModeScreen';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -100,20 +101,6 @@ function RecipePickerScreen({ route }: RecipePickerScreenProps) {
   );
 }
 
-function CookingModeScreen() {
-  const colors = useColors();
-
-  return (
-    <View style={[styles.placeholder, { backgroundColor: colors.background }]}>
-      <Text style={[styles.placeholderText, { color: colors.text }]}>
-        🍳 Cooking Mode
-      </Text>
-      <Text style={[styles.placeholderSubtext, { color: colors.textSecondary }]}>
-        Step-by-step instructions with wake lock
-      </Text>
-    </View>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TAB NAVIGATOR
