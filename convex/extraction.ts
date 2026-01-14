@@ -94,7 +94,59 @@ export const extractRecipe = action({
     agentsUsed.push("cache_agent");
 
     // ─────────────────────────────────────────────────────────────────────────
-    // LLM ORCHESTRATION
+    // FAST PATH: Try schema.org extraction without LLM (much faster)
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      agentsUsed.push("fetch_agent");
+      const fetchResult = await handleFetchPage(url);
+
+      if (fetchResult.success && fetchResult.html) {
+        agentsUsed.push("schema_extractor");
+        const schemaRecipe = handleExtractSchema(fetchResult.html);
+
+        if (schemaRecipe && schemaRecipe.title && schemaRecipe.ingredients.length > 0) {
+          // Parse ingredients for better structure
+          const parsedIngredients = handleParseIngredientsBatch(
+            schemaRecipe.ingredients.map(i => i.text)
+          );
+
+          // Save the recipe
+          const recipeToSave = {
+            ...schemaRecipe,
+            ingredients: parsedIngredients,
+            confidence: 0.95,
+            extractorUsed: "schema_fast_path",
+            agentsUsed,
+          };
+
+          const recipeId = await handleSaveRecipe(ctx, userId, url, recipeToSave);
+
+          // Fetch the saved recipe to return
+          const savedRecipe = await ctx.runQuery(internal.recipes.getByIdInternal, {
+            id: recipeId,
+          });
+
+          return {
+            success: true,
+            recipe: savedRecipe,
+            cached: false,
+            metadata: {
+              extractionTimeMs: Date.now() - startTime,
+              source: "fresh_extraction",
+              agentsUsed,
+              confidence: 0.95,
+              extractorUsed: "schema_fast_path",
+            },
+          };
+        }
+      }
+    } catch (fastPathError) {
+      // Fast path failed, fall through to LLM orchestration
+      console.log("Fast path extraction failed, falling back to LLM:", fastPathError);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LLM ORCHESTRATION (fallback for sites without schema.org)
     // ─────────────────────────────────────────────────────────────────────────
     try {
       const anthropic = new Anthropic();
