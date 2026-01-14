@@ -17,6 +17,7 @@ import { ShoppingListScreen } from '../screens/ShoppingListScreen';
 import { ExtractingScreen } from '../screens/ExtractingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { CookingModeScreen } from '../screens/CookingModeScreen';
+import { RecipePickerScreen } from '../screens/RecipePickerScreen';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -76,31 +77,6 @@ function TabIcon({ focused, icon, label }: TabIconProps) {
     </View>
   );
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PLACEHOLDER SCREENS
-// ═══════════════════════════════════════════════════════════════════════════
-
-interface RecipePickerScreenProps {
-  route: { params: { date: string; slot: string } };
-}
-
-function RecipePickerScreen({ route }: RecipePickerScreenProps) {
-  const colors = useColors();
-  const { date, slot } = route.params;
-
-  return (
-    <View style={[styles.placeholder, { backgroundColor: colors.background }]}>
-      <Text style={[styles.placeholderText, { color: colors.text }]}>
-        Select a Recipe
-      </Text>
-      <Text style={[styles.placeholderSubtext, { color: colors.textSecondary }]}>
-        For {slot} on {date}
-      </Text>
-    </View>
-  );
-}
-
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TAB NAVIGATOR
@@ -211,7 +187,7 @@ export function RootNavigator() {
           name="RecipePicker"
           component={RecipePickerScreen}
           options={{
-            title: 'Select Recipe',
+            headerShown: false,
             presentation: 'modal',
           }}
         />
@@ -244,19 +220,5 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontFamily: typography.fonts.sansMedium,
     fontSize: 10,
-  },
-  placeholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    fontFamily: typography.fonts.display,
-    fontSize: typography.sizes.title,
-    marginBottom: spacing.sm,
-  },
-  placeholderSubtext: {
-    fontFamily: typography.fonts.sans,
-    fontSize: typography.sizes.body,
   },
 });

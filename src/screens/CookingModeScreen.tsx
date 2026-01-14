@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing['2xl'],
     alignItems: 'center',
   },
   stepBadge: {

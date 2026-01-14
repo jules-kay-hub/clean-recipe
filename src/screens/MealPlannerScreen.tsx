@@ -10,10 +10,13 @@ import {
   StatusBar,
   Pressable,
   Text,
+  Image,
 } from 'react-native';
+import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
+import { api } from '../../convex/_generated/api';
 import { RootStackParamList, TabParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, borderRadius, typography, shadows } from '../styles/theme';
@@ -82,21 +85,28 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
   };
 
   // Fetch meal plan for selected date
-  // const mealPlan = useQuery(api.mealPlans.getByDate, {
-  //   date: formatDateKey(selectedDate),
-  // });
+  const mealPlan = useQuery(api.mealPlans.getByDate, {
+    date: formatDateKey(selectedDate),
+  });
 
-  // Mock meal plan data for demo
-  const mealPlan = {
-    meals: [
-      { slot: 'breakfast' as MealSlot, recipeId: '1', recipeName: 'Avocado Toast' },
-      { slot: 'dinner' as MealSlot, recipeId: '2', recipeName: 'Creamy Tuscan Chicken' },
-    ],
-  };
+  // Mutation to remove a meal
+  const removeMeal = useMutation(api.mealPlans.removeMeal);
 
   // Get recipe for a meal slot
   const getMealForSlot = (slot: MealSlot) => {
     return mealPlan?.meals.find((m) => m.slot === slot);
+  };
+
+  // Remove a meal from a slot
+  const handleRemoveMeal = async (slot: MealSlot) => {
+    try {
+      await removeMeal({
+        date: formatDateKey(selectedDate),
+        slot,
+      });
+    } catch (error) {
+      console.error('Failed to remove meal:', error);
+    }
   };
 
   // Navigate to recipe picker
@@ -249,18 +259,35 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
 
                 {meal ? (
                   <View style={styles.mealContent}>
-                    <Text
-                      style={[styles.recipeName, { color: colors.text }]}
-                      numberOfLines={2}
-                    >
-                      {meal.recipeName}
-                    </Text>
-                    <Pressable
-                      onPress={() => handleAddMeal(slot.key)}
-                      style={styles.changeButton}
-                    >
-                      <Caption style={{ color: colors.primary }}>Change</Caption>
-                    </Pressable>
+                    {meal.recipeImage && (
+                      <Image
+                        source={{ uri: meal.recipeImage }}
+                        style={styles.mealImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <View style={styles.mealInfo}>
+                      <Text
+                        style={[styles.recipeName, { color: colors.text }]}
+                        numberOfLines={2}
+                      >
+                        {meal.recipeName}
+                      </Text>
+                      <View style={styles.mealActions}>
+                        <Pressable
+                          onPress={() => handleAddMeal(slot.key)}
+                          style={styles.changeButton}
+                        >
+                          <Caption style={{ color: colors.primary }}>Change</Caption>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => handleRemoveMeal(slot.key)}
+                          style={styles.removeButton}
+                        >
+                          <Caption style={{ color: colors.error }}>Remove</Caption>
+                        </Pressable>
+                      </View>
+                    </View>
                   </View>
                 ) : (
                   <Pressable
@@ -384,15 +411,29 @@ const styles = StyleSheet.create({
   mealContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+  },
+  mealImage: {
+    width: 60,
+    height: 60,
+    borderRadius: borderRadius.sm,
+    marginRight: spacing.md,
+  },
+  mealInfo: {
+    flex: 1,
   },
   recipeName: {
     fontFamily: typography.fonts.display,
     fontSize: typography.sizes.body,
-    flex: 1,
+    marginBottom: spacing.xs,
+  },
+  mealActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
   changeButton: {
-    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  removeButton: {
     paddingVertical: spacing.xs,
   },
   addMealButton: {

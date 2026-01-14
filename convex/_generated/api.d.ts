@@ -13,6 +13,7 @@ import type * as lib_llmTools from "../lib/llmTools.js";
 import type * as lib_toolHandlers from "../lib/toolHandlers.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
+import type * as mealPlans from "../mealPlans.js";
 import type * as recipes from "../recipes.js";
 import type * as users from "../users.js";
 
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   "lib/toolHandlers": typeof lib_toolHandlers;
   "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
+  mealPlans: typeof mealPlans;
   recipes: typeof recipes;
   users: typeof users;
 }>;
