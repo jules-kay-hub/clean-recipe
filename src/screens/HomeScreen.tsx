@@ -34,9 +34,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
 
   // Fetch recipes and get/create demo user
-  const recipes = useQuery(api.recipes.list) || [];
   const extractRecipe = useAction(api.extraction.extractRecipe);
   const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
+  // Pass userId to list query so it works without auth (demo mode)
+  const recipes = useQuery(api.recipes.list, userId ? { userId } : "skip") || [];
 
   // Initialize demo user on mount
   useEffect(() => {

@@ -10,10 +10,23 @@ import { query, mutation, internalQuery, internalMutation } from "./_generated/s
 
 /**
  * Get all recipes for the current user
+ * Supports both authenticated users and demo user (via userId param)
  */
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    userId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, { userId }) => {
+    // If userId provided (demo mode), use it directly
+    if (userId) {
+      return await ctx.db
+        .query("recipes")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .order("desc")
+        .collect();
+    }
+
+    // Otherwise, try authenticated user
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
 
