@@ -2,7 +2,7 @@
   "name": "clean-recipe",
   "version": "1.0.0",
   "description": "CleanRecipe - Ad-free recipe extraction app",
-  "main": "App.tsx",
+  "main": "index.js",
   "private": true,
   "scripts": {
     "start": "expo start",

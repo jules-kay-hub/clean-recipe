@@ -110,8 +110,7 @@ export default defineSchema({
     ),
   })
     .index("by_user", ["userId"])
-    .index("by_user_date", ["userId", "date"])
-    .index("by_date_range", ["userId", "date"]), // For week views
+    .index("by_user_date", ["userId", "date"]), // Also used for date range queries
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SHOPPING LISTS TABLE

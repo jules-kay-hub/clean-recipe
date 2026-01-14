@@ -1,7 +1,26 @@
 // convex/lib/utils.ts
 // Utility functions for CleanRecipe
 
-import { createHash } from "crypto";
+// Simple hash function that works in Convex runtime (no Node.js crypto needed)
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Convert to hex and ensure positive, then pad to 16 chars
+  const hex = Math.abs(hash).toString(16);
+  // Add more entropy by also hashing from the end
+  let hash2 = 0;
+  for (let i = str.length - 1; i >= 0; i--) {
+    const char = str.charCodeAt(i);
+    hash2 = ((hash2 << 5) - hash2) + char;
+    hash2 = hash2 & hash2;
+  }
+  const hex2 = Math.abs(hash2).toString(16);
+  return (hex + hex2).padStart(16, '0').substring(0, 16);
+}
 
 /**
  * Tracking parameters to remove from URLs
@@ -76,11 +95,11 @@ export function normalizeUrl(url: string): string {
 
 /**
  * Creates a hash of the normalized URL for database indexing
- * Uses first 16 characters of SHA256 (64 bits = ~18 quintillion possibilities)
+ * Uses a simple hash function compatible with Convex runtime
  */
 export function hashUrl(url: string): string {
   const normalized = normalizeUrl(url);
-  return createHash("sha256").update(normalized).digest("hex").substring(0, 16);
+  return simpleHash(normalized);
 }
 
 /**
