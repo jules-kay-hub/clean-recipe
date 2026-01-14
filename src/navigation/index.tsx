@@ -15,6 +15,7 @@ import { RecipeDetailScreen } from '../screens/RecipeDetailScreen';
 import { MealPlannerScreen } from '../screens/MealPlannerScreen';
 import { ShoppingListScreen } from '../screens/ShoppingListScreen';
 import { ExtractingScreen } from '../screens/ExtractingScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -78,21 +79,6 @@ function TabIcon({ focused, icon, label }: TabIconProps) {
 // ═══════════════════════════════════════════════════════════════════════════
 // PLACEHOLDER SCREENS
 // ═══════════════════════════════════════════════════════════════════════════
-
-function SettingsScreen() {
-  const colors = useColors();
-
-  return (
-    <View style={[styles.placeholder, { backgroundColor: colors.background }]}>
-      <Text style={[styles.placeholderText, { color: colors.text }]}>
-        Settings
-      </Text>
-      <Text style={[styles.placeholderSubtext, { color: colors.textSecondary }]}>
-        Coming soon
-      </Text>
-    </View>
-  );
-}
 
 interface RecipePickerScreenProps {
   route: { params: { date: string; slot: string } };
