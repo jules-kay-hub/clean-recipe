@@ -32,7 +32,7 @@ export const EXTRACTION_TOOLS: LLMTool[] = [
   {
     name: "fetch_page",
     description:
-      "Fetch the HTML content of a web page. Use this to retrieve the raw HTML for extraction. Returns the HTML content and response metadata.",
+      "Fetch the HTML content of a web page. The HTML is stored internally and automatically available to extract_schema_recipe, extract_with_selectors, and extract_generic tools. Returns metadata about the fetch (status, content type, html length) but NOT the raw HTML (to save tokens).",
     input_schema: {
       type: "object",
       properties: {
@@ -55,28 +55,28 @@ export const EXTRACTION_TOOLS: LLMTool[] = [
   {
     name: "extract_schema_recipe",
     description:
-      "Extract recipe data from schema.org JSON-LD or microdata markup in HTML. This is the most reliable extraction method when available. Returns structured recipe data or null if no schema.org recipe found.",
+      "Extract recipe data from schema.org JSON-LD or microdata markup. This is the most reliable extraction method when available. The HTML from the previous fetch_page call is automatically used - you do NOT need to pass html. Returns structured recipe data or null if no schema.org recipe found.",
     input_schema: {
       type: "object",
       properties: {
         html: {
           type: "string",
-          description: "The HTML content to extract schema.org recipe from",
+          description: "Optional - HTML is automatically available from fetch_page. Only pass this if you have HTML from another source.",
         },
       },
-      required: ["html"],
+      required: [],
     },
   },
   {
     name: "extract_with_selectors",
     description:
-      "Extract recipe data using CSS selectors for a known recipe site. Use this when schema.org is not available but we know the site structure.",
+      "Extract recipe data using CSS selectors for a known recipe site. Use this when schema.org is not available but we know the site structure. The HTML from fetch_page is automatically used.",
     input_schema: {
       type: "object",
       properties: {
         html: {
           type: "string",
-          description: "The HTML content to extract from",
+          description: "Optional - HTML is automatically available from fetch_page.",
         },
         siteName: {
           type: "string",
@@ -84,22 +84,22 @@ export const EXTRACTION_TOOLS: LLMTool[] = [
             "The known site name (e.g., 'allrecipes', 'seriouseats') to use appropriate selectors",
         },
       },
-      required: ["html", "siteName"],
+      required: ["siteName"],
     },
   },
   {
     name: "extract_generic",
     description:
-      "Extract recipe data using heuristics and pattern matching. Use this as a fallback when schema.org and known site selectors are not available. Less reliable but works on unknown sites.",
+      "Extract recipe data using heuristics and pattern matching. Use this as a fallback when schema.org and known site selectors are not available. The HTML from fetch_page is automatically used.",
     input_schema: {
       type: "object",
       properties: {
         html: {
           type: "string",
-          description: "The HTML content to extract from",
+          description: "Optional - HTML is automatically available from fetch_page.",
         },
       },
-      required: ["html"],
+      required: [],
     },
   },
 
