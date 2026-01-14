@@ -15,6 +15,7 @@ import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as mealPlans from "../mealPlans.js";
 import type * as recipes from "../recipes.js";
+import type * as shoppingLists from "../shoppingLists.js";
 import type * as users from "../users.js";
 
 import type {
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   "lib/utils": typeof lib_utils;
   mealPlans: typeof mealPlans;
   recipes: typeof recipes;
+  shoppingLists: typeof shoppingLists;
   users: typeof users;
 }>;
 

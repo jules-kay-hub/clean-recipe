@@ -1,7 +1,7 @@
 // src/screens/ShoppingListScreen.tsx
 // Aggregated shopping list from meal plans
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -12,9 +12,11 @@ import {
   Text,
   Share,
 } from 'react-native';
+import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
+import { api } from '../../convex/_generated/api';
 import { RootStackParamList, TabParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, typography } from '../styles/theme';
@@ -27,6 +29,7 @@ import {
   Checkbox,
   Divider,
   EmptyState,
+  Spinner,
 } from '../components/ui';
 
 type ShoppingListNavigationProp = CompositeNavigationProp<
@@ -68,33 +71,97 @@ const CATEGORIES: { key: string; label: string; icon: string }[] = [
   { key: 'other', label: 'Other', icon: '📦' },
 ];
 
-export function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
+// Get current week dates
+function getCurrentWeekDates(): { weekStart: string; weekEnd: string } {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  return {
+    weekStart: startOfWeek.toISOString().split('T')[0],
+    weekEnd: endOfWeek.toISOString().split('T')[0],
+  };
+}
+
+// Create a stable key for an ingredient
+function ingredientKey(item: ShoppingItem): string {
+  return `${item.ingredient.toLowerCase()}|${item.unit || ''}`;
+}
+
+export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProps) {
   const colors = useColors();
   const { isDark } = useTheme();
 
-  // Mock shopping list data for demo
-  const [items, setItems] = useState<ShoppingItem[]>([
-    { id: '1', ingredient: 'Chicken thighs', quantity: 2, unit: 'lbs', category: 'meat_seafood', checked: false, recipes: ['Creamy Tuscan Chicken'] },
-    { id: '2', ingredient: 'Spinach', quantity: 4, unit: 'cups', category: 'produce', checked: false, recipes: ['Creamy Tuscan Chicken', 'Green Smoothie'] },
-    { id: '3', ingredient: 'Sun-dried tomatoes', quantity: 1, unit: 'cup', category: 'pantry', checked: true, recipes: ['Creamy Tuscan Chicken'] },
-    { id: '4', ingredient: 'Heavy cream', quantity: 1, unit: 'cup', category: 'dairy', checked: false, recipes: ['Creamy Tuscan Chicken'] },
-    { id: '5', ingredient: 'Parmesan cheese', quantity: 0.5, unit: 'cup', category: 'dairy', checked: false, recipes: ['Creamy Tuscan Chicken', 'Pasta Primavera'] },
-    { id: '6', ingredient: 'Garlic', quantity: 6, unit: 'cloves', category: 'produce', checked: true, recipes: ['Creamy Tuscan Chicken', 'Garlic Bread'] },
-    { id: '7', ingredient: 'Olive oil', quantity: 2, unit: 'tbsp', category: 'pantry', checked: false, recipes: ['Multiple recipes'] },
-    { id: '8', ingredient: 'Avocados', quantity: 3, unit: undefined, category: 'produce', checked: false, recipes: ['Avocado Toast'] },
-    { id: '9', ingredient: 'Sourdough bread', quantity: 1, unit: 'loaf', category: 'bakery', checked: false, recipes: ['Avocado Toast', 'Garlic Bread'] },
-    { id: '10', ingredient: 'Eggs', quantity: 12, unit: undefined, category: 'dairy', checked: false, recipes: ['Avocado Toast', 'Breakfast Scramble'] },
-    { id: '11', ingredient: 'Italian seasoning', quantity: 1, unit: 'tbsp', category: 'spices', checked: true, recipes: ['Creamy Tuscan Chicken'] },
-    { id: '12', ingredient: 'Red pepper flakes', quantity: 0.5, unit: 'tsp', category: 'spices', checked: false, recipes: ['Pasta Primavera'] },
-  ]);
+  // Get week dates from route params or use current week
+  const { weekStart, weekEnd } = useMemo(() => {
+    if (route?.params?.weekStart && route?.params?.weekEnd) {
+      return {
+        weekStart: route.params.weekStart,
+        weekEnd: route.params.weekEnd,
+      };
+    }
+    return getCurrentWeekDates();
+  }, [route?.params?.weekStart, route?.params?.weekEnd]);
+
+  // Fetch shopping list from meal plans
+  const shoppingData = useQuery(api.shoppingLists.generateFromMealPlans, {
+    startDate: weekStart,
+    endDate: weekEnd,
+  });
+
+  // Fetch saved checked state
+  const savedState = useQuery(api.shoppingLists.getSaved, {
+    weekStart,
+  });
+
+  // Mutation to save checked items
+  const saveCheckedItems = useMutation(api.shoppingLists.saveCheckedItems);
+
+  // Local checked state
+  const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
+
+  // Initialize checked state from saved data
+  useEffect(() => {
+    if (savedState?.checkedItems) {
+      setCheckedKeys(new Set(savedState.checkedItems));
+    }
+  }, [savedState]);
+
+  // Combine generated items with checked state
+  const items: ShoppingItem[] = useMemo(() => {
+    if (!shoppingData?.items) return [];
+
+    return shoppingData.items.map((item) => ({
+      ...item,
+      checked: checkedKeys.has(ingredientKey(item as ShoppingItem)),
+    }));
+  }, [shoppingData?.items, checkedKeys]);
 
   // Toggle item checked state
-  const toggleItem = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
+  const toggleItem = async (item: ShoppingItem) => {
+    const key = ingredientKey(item);
+    const newCheckedKeys = new Set(checkedKeys);
+
+    if (newCheckedKeys.has(key)) {
+      newCheckedKeys.delete(key);
+    } else {
+      newCheckedKeys.add(key);
+    }
+
+    setCheckedKeys(newCheckedKeys);
+
+    // Save to backend
+    try {
+      await saveCheckedItems({
+        weekStart,
+        checkedItems: Array.from(newCheckedKeys),
+      });
+    } catch (error) {
+      console.error('Failed to save checked state:', error);
+    }
   };
 
   // Group items by category
@@ -158,9 +225,33 @@ export function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
   };
 
   // Clear all checked items
-  const handleClearChecked = () => {
-    setItems((prev) => prev.filter((item) => !item.checked));
+  const handleClearChecked = async () => {
+    setCheckedKeys(new Set());
+    try {
+      await saveCheckedItems({
+        weekStart,
+        checkedItems: [],
+      });
+    } catch (error) {
+      console.error('Failed to clear checked state:', error);
+    }
   };
+
+  // Loading state
+  if (shoppingData === undefined) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor={colors.background}
+        />
+        <View style={styles.loading}>
+          <Spinner />
+          <Caption style={{ marginTop: spacing.md }}>Generating shopping list...</Caption>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -177,34 +268,43 @@ export function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
         <View style={styles.header}>
           <ScreenTitle>Shopping List</ScreenTitle>
           <Caption>
-            {checkedCount} of {totalCount} items
+            {totalCount > 0
+              ? `${checkedCount} of ${totalCount} items`
+              : shoppingData.mealCount > 0
+                ? `${shoppingData.mealCount} meals planned`
+                : 'No meals planned this week'
+            }
           </Caption>
         </View>
 
         {/* Progress Bar */}
-        <View style={[styles.progressContainer, { backgroundColor: colors.border }]}>
-          <View
-            style={[
-              styles.progressBar,
-              {
-                backgroundColor: colors.primary,
-                width: `${progress * 100}%`,
-              },
-            ]}
-          />
-        </View>
+        {totalCount > 0 && (
+          <View style={[styles.progressContainer, { backgroundColor: colors.border }]}>
+            <View
+              style={[
+                styles.progressBar,
+                {
+                  backgroundColor: colors.primary,
+                  width: `${progress * 100}%`,
+                },
+              ]}
+            />
+          </View>
+        )}
 
         {/* Actions */}
-        <View style={styles.actions}>
-          <Button onPress={handleShare} variant="secondary" size="sm" icon={<Text>📤</Text>}>
-            Share
-          </Button>
-          {checkedCount > 0 && (
-            <Button onPress={handleClearChecked} variant="ghost" size="sm">
-              Clear Done ({checkedCount})
+        {totalCount > 0 && (
+          <View style={styles.actions}>
+            <Button onPress={handleShare} variant="secondary" size="sm" icon={<Text>📤</Text>}>
+              Share
             </Button>
-          )}
-        </View>
+            {checkedCount > 0 && (
+              <Button onPress={handleClearChecked} variant="ghost" size="sm">
+                Clear Done ({checkedCount})
+              </Button>
+            )}
+          </View>
+        )}
 
         {/* Empty State */}
         {items.length === 0 ? (
@@ -237,12 +337,12 @@ export function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
                     <React.Fragment key={item.id}>
                       {index > 0 && <Divider style={styles.itemDivider} />}
                       <Pressable
-                        onPress={() => toggleItem(item.id)}
+                        onPress={() => toggleItem(item)}
                         style={styles.itemRow}
                       >
                         <Checkbox
                           checked={item.checked}
-                          onToggle={() => toggleItem(item.id)}
+                          onToggle={() => toggleItem(item)}
                         />
                         <View style={styles.itemContent}>
                           <View style={styles.itemMain}>
@@ -285,7 +385,10 @@ export function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
                                   : colors.textSecondary,
                               }}
                             >
-                              {item.recipes.join(', ')}
+                              {item.recipes.length > 2
+                                ? `${item.recipes.slice(0, 2).join(', ')} +${item.recipes.length - 2} more`
+                                : item.recipes.join(', ')
+                              }
                             </Caption>
                           )}
                         </View>
@@ -318,6 +421,11 @@ export function ShoppingListScreen({ navigation }: ShoppingListScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
     padding: spacing.md,

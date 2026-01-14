@@ -114,27 +114,16 @@ export default defineSchema({
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SHOPPING LISTS TABLE
+  // Stores checked state for dynamically generated shopping lists
   // ═══════════════════════════════════════════════════════════════════════════
   shoppingLists: defineTable({
     userId: v.id("users"),
-    name: v.optional(v.string()), // "Week of Jan 13"
-    items: v.array(
-      v.object({
-        ingredient: v.string(),
-        quantity: v.optional(v.number()),
-        unit: v.optional(v.string()),
-        category: v.optional(v.string()), // For grouping: produce, dairy, etc.
-        checked: v.boolean(),
-        recipeId: v.optional(v.id("recipes")), // Source recipe
-        recipeName: v.optional(v.string()), // Denormalized for display
-        manuallyAdded: v.optional(v.boolean()),
-      })
-    ),
-    createdAt: v.number(),
-    updatedAt: v.optional(v.number()),
+    weekStart: v.string(), // ISO date of week start: "2026-01-13"
+    checkedItems: v.array(v.string()), // Array of ingredient keys that are checked
+    updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_created", ["userId", "createdAt"]),
+    .index("by_user_week", ["userId", "weekStart"]),
 
   // ═══════════════════════════════════════════════════════════════════════════
   // EXTRACTION JOBS TABLE (for tracking async extractions)
