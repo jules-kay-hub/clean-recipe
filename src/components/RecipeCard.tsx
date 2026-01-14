@@ -14,6 +14,7 @@ interface RecipeCardProps {
   cookTime?: number;
   servings?: number;
   onPress: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function RecipeCard({
@@ -24,9 +25,15 @@ export function RecipeCard({
   cookTime,
   servings,
   onPress,
+  onDelete,
 }: RecipeCardProps) {
   const colors = useColors();
   const totalTime = (prepTime || 0) + (cookTime || 0);
+
+  const handleDelete = (e: { stopPropagation?: () => void }) => {
+    e.stopPropagation?.();
+    onDelete?.(id);
+  };
 
   return (
     <Pressable
@@ -53,6 +60,23 @@ export function RecipeCard({
           <View style={[styles.imagePlaceholder, { backgroundColor: colors.border }]}>
             <Text style={[styles.placeholderEmoji]}>🍽️</Text>
           </View>
+        )}
+
+        {/* Delete Button */}
+        {onDelete && (
+          <Pressable
+            onPress={handleDelete}
+            style={({ pressed }) => [
+              styles.deleteButton,
+              {
+                backgroundColor: pressed ? 'rgba(220, 53, 69, 0.95)' : 'rgba(220, 53, 69, 0.85)',
+                transform: [{ scale: pressed ? 0.9 : 1 }],
+              },
+            ]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.deleteIcon}>✕</Text>
+          </Pressable>
         )}
       </View>
 
@@ -102,6 +126,27 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: borderRadius.md,
     borderTopRightRadius: borderRadius.md,
     overflow: 'hidden',
+    position: 'relative',
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  deleteIcon: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   image: {
     width: '100%',

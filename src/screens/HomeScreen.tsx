@@ -36,6 +36,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   // Fetch recipes and get/create demo user
   const extractRecipe = useAction(api.extraction.extractRecipe);
   const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
+  const deleteRecipe = useMutation(api.recipes.remove);
   // Pass userId to list query so it works without auth (demo mode)
   const recipes = useQuery(api.recipes.list, userId ? { userId } : "skip") || [];
 
@@ -95,6 +96,19 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
     navigation.navigate('RecipeDetail', { recipeId });
   };
 
+  const handleDeleteRecipe = async (recipeId: string) => {
+    if (!userId) return;
+
+    try {
+      await deleteRecipe({
+        id: recipeId as Id<"recipes">,
+        userId,
+      });
+    } catch (error) {
+      console.error('Failed to delete recipe:', error);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar
@@ -150,6 +164,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                 cookTime={recipe.cookTime}
                 servings={recipe.servings}
                 onPress={handleRecipePress}
+                onDelete={handleDeleteRecipe}
               />
             ))}
           </View>

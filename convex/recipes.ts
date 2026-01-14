@@ -148,15 +148,29 @@ export const deleteByIdInternal = internalMutation({
 
 /**
  * Delete a recipe
+ * Supports both authenticated users and demo mode (via userId param)
  */
 export const remove = mutation({
-  args: { id: v.id("recipes") },
-  handler: async (ctx, { id }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
+  args: {
+    id: v.id("recipes"),
+    userId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, { id, userId }) => {
     const recipe = await ctx.db.get(id);
     if (!recipe) throw new Error("Recipe not found");
+
+    // Demo mode: verify userId matches recipe owner
+    if (userId) {
+      if (recipe.userId !== userId) {
+        throw new Error("Not authorized");
+      }
+      await ctx.db.delete(id);
+      return;
+    }
+
+    // Authenticated mode: verify via auth
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
 
     const user = await ctx.db
       .query("users")
