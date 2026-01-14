@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CleanRecipe - Interactive Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sage: #5C7C5A;
+      --sage-dark: #4A6548;
+      --sage-light: #7A9E78;
+      --terracotta: #C4704E;
+      --terracotta-light: #D4896A;
+      --cream: #FAF8F5;
+      --white: #FFFFFF;
+      --charcoal: #2D2D2D;
+      --stone: #6B6B6B;
+      --mist: #E8E5E0;
+      --deep-charcoal: #1A1A1A;
+      --dark-surface: #2A2A2A;
+      --dark-border: #3A3A3A;
+      --off-white: #F5F5F5;
+      --warm-gray: #A0A0A0;
+      
+      --bg: var(--cream);
+      --surface: var(--white);
+      --text: var(--charcoal);
+      --text-secondary: var(--stone);
+      --text-inverse: var(--white);
+      --border: var(--mist);
+      --primary: var(--sage);
+      --accent: var(--terracotta);
+      
+      --font-sans: 'DM Sans', sans-serif;
+      --font-display: 'Fraunces', serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+    }
+    
+    .dark-mode { --bg: var(--deep-charcoal); --surface: var(--dark-surface); --text: var(--off-white); --text-secondary: var(--warm-gray); --text-inverse: var(--charcoal); --border: var(--dark-border); --primary: var(--sage-light); --accent: var(--terracotta-light); }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-sans); background: linear-gradient(135deg, #5C7C5A 0%, #4A6548 50%, #C4704E 100%); min-height: 100vh; padding: 40px 20px; }
+    
+    .container { max-width: 1400px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 40px; color: white; }
+    .header h1 { font-family: var(--font-display); font-size: 48px; margin-bottom: 8px; text-shadow: 0 2px 20px rgba(0,0,0,0.2); }
+    .header p { font-size: 18px; opacity: 0.9; }
+    
+    .controls { display: flex; justify-content: center; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+    .ctrl-btn { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; padding: 12px 24px; border-radius: var(--radius-full); font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+    .ctrl-btn.active { background: white; color: var(--sage); }
+    
+    .phones { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+    .phone-wrap { display: flex; flex-direction: column; align-items: center; }
+    .phone-label { color: white; font-size: 14px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .phone { width: 375px; height: 812px; background: var(--bg); border-radius: 44px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.4), 0 0 0 14px #1a1a1a; position: relative; transition: background 0.3s; }
+    .phone::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 150px; height: 35px; background: #1a1a1a; border-radius: 0 0 20px 20px; z-index: 100; }
+    
+    .status { height: 50px; padding: 14px 24px 0; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: var(--text); }
+    .screen { height: calc(100% - 130px); overflow-y: auto; padding: 0 16px 16px; scrollbar-width: none; }
+    .screen::-webkit-scrollbar { width: 0; }
+    
+    .nav { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 8px; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 8px; border-radius: var(--radius-sm); }
+    .nav-item:hover { background: var(--border); }
+    .nav-icon { font-size: 24px; opacity: 0.6; margin-bottom: 2px; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-item.active .nav-text { color: var(--primary); }
+    .nav-text { font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+    
+    .title { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .hero-title { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--text); line-height: 1.2; }
+    .section { font-family: var(--font-sans); font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 12px; }
+    .caption { font-size: 14px; color: var(--text-secondary); }
+    
+    .card { background: var(--surface); border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 16px; transition: transform 0.2s; cursor: pointer; }
+    .card:hover { transform: translateY(-2px); }
+    .card-img { width: 100%; height: 140px; object-fit: cover; background: linear-gradient(135deg, var(--sage-light), var(--sage)); }
+    .card-body { padding: 16px; }
+    .card-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .card-meta { display: flex; gap: 12px; font-size: 13px; color: var(--text-secondary); }
+    
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 16px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+    .btn:hover { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: var(--text-inverse); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-secondary { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn-full { width: 100%; }
+    
+    .url-box { display: flex; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 24px; }
+    .url-box:focus-within { border-color: var(--primary); }
+    .url-input { flex: 1; padding: 14px 16px; border: none; font-family: var(--font-sans); font-size: 15px; background: transparent; color: var(--text); outline: none; }
+    .url-input::placeholder { color: var(--text-secondary); }
+    .url-btn { padding: 14px 20px; background: var(--primary); color: white; font-weight: 600; border: none; cursor: pointer; }
+    
+    .ingredient { display: flex; align-items: center; padding: 10px 0; cursor: pointer; border-radius: var(--radius-sm); }
+    .ingredient:hover { background: var(--border); margin: 0 -8px; padding: 10px 8px; }
+    .check { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 6px; margin-right: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+    .ingredient.done .check { background: var(--accent); border-color: var(--accent); }
+    .checkmark { color: white; font-weight: bold; font-size: 12px; opacity: 0; }
+    .ingredient.done .checkmark { opacity: 1; }
+    .ing-text { font-size: 15px; color: var(--text); }
+    .ingredient.done .ing-text { color: var(--text-secondary); text-decoration: line-through; }
+    .qty { font-weight: 600; margin-right: 4px; }
+    
+    .adj { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px 0; }
+    .adj-btn { width: 44px; height: 44px; border-radius: var(--radius-sm); border: 2px solid var(--border); background: var(--surface); font-size: 22px; font-weight: 600; color: var(--primary); cursor: pointer; }
+    .adj-val { padding: 10px 24px; background: var(--accent); border-radius: var(--radius-sm); color: white; font-weight: 600; font-size: 18px; min-width: 120px; text-align: center; }
+    
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+    
+    .step { display: flex; gap: 12px; margin-bottom: 20px; }
+    .step-num { width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .step-txt { flex: 1; font-size: 15px; line-height: 1.6; color: var(--text); }
+    
+    .hero-img { margin: -16px -16px 16px; height: 200px; background: linear-gradient(135deg, var(--sage), var(--sage-dark)); position: relative; }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .back { position: absolute; top: 16px; left: 16px; width: 36px; height: 36px; background: rgba(0,0,0,0.4); border-radius: 18px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; cursor: pointer; }
+    
+    .meta { display: flex; gap: 16px; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary); }
+    
+    .sticky { position: absolute; bottom: 80px; left: 0; right: 0; padding: 16px; background: linear-gradient(transparent, var(--bg) 20%); }
+    
+    .days { display: flex; gap: 4px; margin-bottom: 20px; }
+    .day { flex: 1; padding: 8px 4px; background: var(--surface); border-radius: var(--radius-sm); text-align: center; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .day:hover { transform: translateY(-1px); }
+    .day.sel { background: var(--primary); }
+    .day.today { border: 2px solid var(--accent); }
+    .day-n { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+    .day.sel .day-n { color: rgba(255,255,255,0.8); }
+    .day-d { font-size: 15px; font-weight: 600; color: var(--text); }
+    .day.sel .day-d { color: white; }
+    
+    .meal { background: var(--surface); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .meal-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .meal-lbl { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+    .meal-name { font-family: var(--font-display); font-size: 15px; color: var(--text); }
+    .meal-add { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: 2px dashed var(--border); border-radius: var(--radius-sm); color: var(--primary); font-weight: 500; cursor: pointer; }
+    .meal-add:hover { border-color: var(--primary); background: rgba(92,124,90,0.05); }
+    
+    .progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+    .progress-bar { height: 100%; background: var(--primary); border-radius: 3px; }
+    
+    .cat { margin-bottom: 20px; }
+    .cat-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .items { background: var(--surface); border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .item:last-child { border-bottom: none; }
+    .item:hover { background: var(--bg); }
+    .item.done { background: var(--bg); }
+    .item-info { flex: 1; margin-left: 12px; }
+    .item-name { font-size: 15px; color: var(--text); }
+    .item.done .item-name { text-decoration: line-through; color: var(--text-secondary); }
+    .item-src { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    
+    .load { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 32px; text-align: center; }
+    .load-icon { width: 100px; height: 100px; background: rgba(92,124,90,0.1); border-radius: 50px; display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 24px; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .load-icon span { animation: spin 2s linear infinite; display: inline-block; }
+    .load-title { font-family: var(--font-display); font-size: 22px; color: var(--text); margin-bottom: 8px; }
+    .load-msg { color: var(--text-secondary); margin-bottom: 24px; }
+    .dots { display: flex; gap: 8px; margin-bottom: 24px; }
+    .dot { width: 8px; height: 8px; background: var(--border); border-radius: 4px; }
+    .dot.on { background: var(--primary); }
+    
+    .theme-box { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 32px; margin-top: 60px; }
+    .theme-box h2 { color: white; font-family: var(--font-display); font-size: 28px; text-align: center; margin-bottom: 24px; }
+    .palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .swatch-wrap { text-align: center; }
+    .swatch { width: 50px; height: 50px; border-radius: 25px; margin: 0 auto 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .swatch-name { color: white; font-size: 12px; font-weight: 600; }
+    .swatch-hex { color: rgba(255,255,255,0.7); font-size: 10px; font-family: monospace; }
+    
+    .typo { background: var(--bg); border-radius: 16px; padding: 24px; }
+    .type-row { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .type-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .type-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    
+    @media (max-width: 900px) { .phones { gap: 60px; } .phone { transform: scale(0.9); transform-origin: top center; } }
+    @media (max-width: 600px) { .phone { transform: scale(0.85); } .header h1 { font-size: 36px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🍳 CleanRecipe</h1>
+      <p>Interactive Theme Preview • React Native + Convex</p>
+    </div>
+    
+    <div class="controls">
+      <button class="ctrl-btn active" onclick="setTheme('light')">☀️ Light Mode</button>
+      <button class="ctrl-btn" onclick="setTheme('dark')">🌙 Dark Mode</button>
+    </div>
+    
+    <div class="phones">
+      <!-- Phone 1: Home -->
+      <div class="phone-wrap">
+        <div class="phone-label">Home / Library</div>
+        <div class="phone" id="p1">
+          <div class="status"><span>9:41</span><span>📶 📡 🔋</span></div>
+          <div class="screen">
+            <h1 class="title">My Recipes</h1>
+            <p class="caption" style="margin-bottom:16px">12 recipes saved</p>
+            <div class="url-box">
+              <span style="padding:14px 0 14px 16px;font-size:18px">🔗</span>
+              <input type="text" class="url-input" placeholder="Paste recipe URL...">
+              <button class="url-btn">Extract</button>
+            </div>
+            <div class="card">
+              <img class="card-img" src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&h=200&fit=crop">
+              <div class="card-body"><h3 class="card-title">Creamy Tuscan Chicken</h3><div class="card-meta"><span>⏱ 45 min</span><span>👤 4</span></div></div>
+            </div>
+            <div class="card">
+              <img class="card-img" src="https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=200&fit=crop">
+              <div class="card-body"><h3 class="card-title">Avocado Toast</h3><div class="card-meta"><span>⏱ 15 min</span><span>👤 2</span></div></div>
+            </div>
+            <div class="card">
+              <img class="card-img" src="https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400&h=200&fit=crop">
+              <div class="card-body"><h3 class="card-title">Thai Basil Fried Rice</h3><div class="card-meta"><span>⏱ 25 min</span><span>👤 4</span></div></div>
+            </div>
+          </div>
+          <div class="nav">
+            <div class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Recipes</span></div>
+            <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Plan</span></div>
+            <div class="nav-item"><span class="nav-icon">🛒</span><span class="nav-text">Shop</span></div>
+            <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Phone 2: Detail -->
+      <div class="phone-wrap">
+        <div class="phone-label">Recipe Detail</div>
+        <div class="phone" id="p2">
+          <div class="status"><span>9:41</span><span>📶 📡 🔋</span></div>
+          <div class="screen">
+            <div class="hero-img">
+              <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&h=300&fit=crop">
+              <div class="back">←</div>
+            </div>
+            <h1 class="hero-title">Creamy Tuscan Chicken</h1>
+            <div class="meta"><span>⏱ 45 min</span><span>Prep: 15m</span><span>Cook: 30m</span></div>
+            <div class="divider"></div>
+            <div class="adj">
+              <button class="adj-btn">−</button>
+              <div class="adj-val">4 <span style="font-size:13px;font-weight:400">servings</span></div>
+              <button class="adj-btn">+</button>
+            </div>
+            <div class="divider"></div>
+            <h2 class="section">Ingredients</h2>
+            <div class="ingredient" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><span class="ing-text"><span class="qty">2 lbs</span> chicken thighs</span></div>
+            <div class="ingredient done" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><span class="ing-text"><span class="qty">1 cup</span> sun-dried tomatoes</span></div>
+            <div class="ingredient" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><span class="ing-text"><span class="qty">2 cups</span> fresh spinach</span></div>
+            <div class="ingredient" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><span class="ing-text"><span class="qty">1 cup</span> heavy cream</span></div>
+            <div class="ingredient" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><span class="ing-text"><span class="qty">4 cloves</span> garlic</span></div>
+            <div class="divider"></div>
+            <h2 class="section">Instructions</h2>
+            <div class="step"><div class="step-num">1</div><div class="step-txt">Season chicken with salt and pepper. Heat oil in a large skillet.</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-txt">Sear chicken until golden, 4-5 minutes per side. Set aside.</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-txt">Add garlic and sun-dried tomatoes. Sauté 1-2 minutes.</div></div>
+            <div style="height:100px"></div>
+          </div>
+          <div class="sticky"><button class="btn btn-accent btn-full">🍳 Start Cooking</button></div>
+          <div class="nav">
+            <div class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Recipes</span></div>
+            <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Plan</span></div>
+            <div class="nav-item"><span class="nav-icon">🛒</span><span class="nav-text">Shop</span></div>
+            <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Phone 3: Meal Planner -->
+      <div class="phone-wrap">
+        <div class="phone-label">Meal Planner</div>
+        <div class="phone" id="p3">
+          <div class="status"><span>9:41</span><span>📶 📡 🔋</span></div>
+          <div class="screen">
+            <h1 class="title">Meal Planner</h1>
+            <p class="caption" style="margin-bottom:16px">Plan your week</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:8px;border-radius:var(--radius-md);margin-bottom:16px">
+              <button class="adj-btn" style="width:36px;height:36px;font-size:18px">←</button>
+              <span style="font-weight:600;color:var(--text)">This Week</span>
+              <button class="adj-btn" style="width:36px;height:36px;font-size:18px">→</button>
+            </div>
+            <div class="days">
+              <div class="day"><div class="day-n">Sun</div><div class="day-d">12</div></div>
+              <div class="day today sel"><div class="day-n">Mon</div><div class="day-d">13</div></div>
+              <div class="day"><div class="day-n">Tue</div><div class="day-d">14</div></div>
+              <div class="day"><div class="day-n">Wed</div><div class="day-d">15</div></div>
+              <div class="day"><div class="day-n">Thu</div><div class="day-d">16</div></div>
+              <div class="day"><div class="day-n">Fri</div><div class="day-d">17</div></div>
+              <div class="day"><div class="day-n">Sat</div><div class="day-d">18</div></div>
+            </div>
+            <h2 class="section">Monday, January 13</h2>
+            <div class="meal"><div class="meal-hdr"><span>🌅</span><span class="meal-lbl">Breakfast</span></div><div class="meal-name">Avocado Toast</div></div>
+            <div class="meal"><div class="meal-hdr"><span>☀️</span><span class="meal-lbl">Lunch</span></div><div class="meal-add">+ Add Recipe</div></div>
+            <div class="meal"><div class="meal-hdr"><span>🌙</span><span class="meal-lbl">Dinner</span></div><div class="meal-name">Creamy Tuscan Chicken</div></div>
+            <div style="height:20px"></div>
+            <button class="btn btn-accent btn-full">🛒 Generate Shopping List</button>
+            <p class="caption" style="text-align:center;margin-top:8px">From all planned meals</p>
+          </div>
+          <div class="nav">
+            <div class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Recipes</span></div>
+            <div class="nav-item active"><span class="nav-icon">📅</span><span class="nav-text">Plan</span></div>
+            <div class="nav-item"><span class="nav-icon">🛒</span><span class="nav-text">Shop</span></div>
+            <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Row 2 -->
+    <div class="phones" style="margin-top:60px">
+      <!-- Phone 4: Shopping -->
+      <div class="phone-wrap">
+        <div class="phone-label">Shopping List</div>
+        <div class="phone" id="p4">
+          <div class="status"><span>9:41</span><span>📶 📡 🔋</span></div>
+          <div class="screen">
+            <h1 class="title">Shopping List</h1>
+            <p class="caption" style="margin-bottom:12px">4 of 12 items</p>
+            <div class="progress"><div class="progress-bar" style="width:33%"></div></div>
+            <div style="display:flex;gap:8px;margin-bottom:20px">
+              <button class="btn btn-secondary" style="padding:8px 16px;font-size:13px">📤 Share</button>
+              <button class="btn" style="padding:8px 16px;font-size:13px;background:transparent;color:var(--text-secondary)">Clear Done</button>
+            </div>
+            <div class="cat">
+              <div class="cat-hdr"><span>🥬</span><span class="section" style="margin:0">Produce</span><span class="caption" style="margin-left:auto">2</span></div>
+              <div class="items">
+                <div class="item" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><div class="item-info"><div class="item-name"><strong>4 cups</strong> spinach</div><div class="item-src">Tuscan Chicken</div></div></div>
+                <div class="item done" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><div class="item-info"><div class="item-name"><strong>4 cloves</strong> garlic</div><div class="item-src">Multiple</div></div></div>
+              </div>
+            </div>
+            <div class="cat">
+              <div class="cat-hdr"><span>🥩</span><span class="section" style="margin:0">Meat</span><span class="caption" style="margin-left:auto">1</span></div>
+              <div class="items">
+                <div class="item" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><div class="item-info"><div class="item-name"><strong>2 lbs</strong> chicken thighs</div><div class="item-src">Tuscan Chicken</div></div></div>
+              </div>
+            </div>
+            <div class="cat">
+              <div class="cat-hdr"><span>🧀</span><span class="section" style="margin:0">Dairy</span><span class="caption" style="margin-left:auto">2</span></div>
+              <div class="items">
+                <div class="item" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><div class="item-info"><div class="item-name"><strong>1 cup</strong> heavy cream</div><div class="item-src">Tuscan Chicken</div></div></div>
+                <div class="item" onclick="this.classList.toggle('done')"><div class="check"><span class="checkmark">✓</span></div><div class="item-info"><div class="item-name"><strong>½ cup</strong> parmesan</div><div class="item-src">Multiple</div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="nav">
+            <div class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Recipes</span></div>
+            <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Plan</span></div>
+            <div class="nav-item active"><span class="nav-icon">🛒</span><span class="nav-text">Shop</span></div>
+            <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Phone 5: Loading -->
+      <div class="phone-wrap">
+        <div class="phone-label">Extracting</div>
+        <div class="phone" id="p5">
+          <div class="status"><span>9:41</span><span>📶 📡 🔋</span></div>
+          <div class="screen">
+            <div class="load">
+              <div class="load-icon"><span>🍳</span></div>
+              <div class="load-title">Extracting Recipe</div>
+              <div class="load-msg">Parsing ingredients...</div>
+              <div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+              <div style="padding:8px 16px;background:var(--surface);border-radius:var(--radius-full)"><span class="caption">allrecipes.com</span></div>
+              <div style="height:24px"></div>
+              <button class="btn" style="background:transparent;color:var(--text-secondary)">Cancel</button>
+            </div>
+          </div>
+          <div class="nav">
+            <div class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Recipes</span></div>
+            <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Plan</span></div>
+            <div class="nav-item"><span class="nav-icon">🛒</span><span class="nav-text">Shop</span></div>
+            <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Theme Showcase -->
+    <div class="theme-box">
+      <h2>🎨 Design System</h2>
+      <div class="palette">
+        <div class="swatch-wrap"><div class="swatch" style="background:#5C7C5A"></div><div class="swatch-name">Sage</div><div class="swatch-hex">#5C7C5A</div></div>
+        <div class="swatch-wrap"><div class="swatch" style="background:#C4704E"></div><div class="swatch-name">Terracotta</div><div class="swatch-hex">#C4704E</div></div>
+        <div class="swatch-wrap"><div class="swatch" style="background:#FAF8F5"></div><div class="swatch-name">Cream</div><div class="swatch-hex">#FAF8F5</div></div>
+        <div class="swatch-wrap"><div class="swatch" style="background:#2D2D2D"></div><div class="swatch-name">Charcoal</div><div class="swatch-hex">#2D2D2D</div></div>
+        <div class="swatch-wrap"><div class="swatch" style="background:#6B6B6B"></div><div class="swatch-name">Stone</div><div class="swatch-hex">#6B6B6B</div></div>
+        <div class="swatch-wrap"><div class="swatch" style="background:#E8E5E0"></div><div class="swatch-name">Mist</div><div class="swatch-hex">#E8E5E0</div></div>
+      </div>
+      <div class="typo">
+        <div class="type-row"><div class="type-label">Display / Fraunces</div><div style="font-family:var(--font-display);font-size:24px;color:var(--text)">Creamy Tuscan Chicken</div></div>
+        <div class="type-row"><div class="type-label">Body / DM Sans</div><div style="font-family:var(--font-sans);font-size:16px;color:var(--text)">Season chicken thighs with salt and pepper. Heat oil in a large skillet over medium-high heat.</div></div>
+        <div class="type-row"><div class="type-label">Section Header</div><div style="font-family:var(--font-sans);font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:1px">INGREDIENTS</div></div>
+        <div class="type-row"><div class="type-label">Caption</div><div style="font-size:14px;color:var(--text-secondary)">12 recipes saved • Last updated 2 hours ago</div></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function setTheme(mode) {
+      document.querySelectorAll('.phone').forEach(p => {
+        if (mode === 'dark') p.classList.add('dark-mode');
+        else p.classList.remove('dark-mode');
+      });
+      document.querySelectorAll('.typo').forEach(t => {
+        if (mode === 'dark') t.classList.add('dark-mode');
+        else t.classList.remove('dark-mode');
+      });
+      document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

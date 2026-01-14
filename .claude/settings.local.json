@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"C:\\\\Users\\\\julie\\\\OneDrive\\\\Desktop\\\\App Building\\\\Claude\\\\clean_recipe\\\\convex\")",
+      "Bash(npm run lint)",
+      "Bash(npx eslint:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)"
+    ]
+  }
+}
