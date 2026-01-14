@@ -17,6 +17,35 @@ interface RecipeCardProps {
   onDelete?: (id: string) => void;
 }
 
+// Decode HTML entities in text (for legacy data that may have encoded entities)
+function decodeHtmlEntities(text: string): string {
+  if (!text) return text;
+  let result = text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&mdash;/g, '\u2014')
+    .replace(/&ndash;/g, '\u2013')
+    .replace(/&lsquo;/g, '\u2018')
+    .replace(/&rsquo;/g, '\u2019')
+    .replace(/&ldquo;/g, '\u201C')
+    .replace(/&rdquo;/g, '\u201D');
+
+  // Handle numeric entities (&#8217; etc.)
+  result = result.replace(/&#(\d+);/g, (_, code) =>
+    String.fromCharCode(parseInt(code, 10))
+  );
+  result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, code) =>
+    String.fromCharCode(parseInt(code, 16))
+  );
+
+  return result;
+}
+
 // Web-specific delete button component
 function DeleteButton({ onDelete }: { onDelete: () => void }) {
   if (Platform.OS === 'web') {
@@ -119,7 +148,7 @@ export function RecipeCard({
           numberOfLines={2}
           ellipsizeMode="tail"
         >
-          {title}
+          {decodeHtmlEntities(title)}
         </Text>
 
         {/* Meta Info */}

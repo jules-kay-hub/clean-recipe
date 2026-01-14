@@ -10,7 +10,7 @@ import {
   FetchResult,
   Recipe,
 } from "./types";
-import { hashUrl } from "./utils";
+import { hashUrl, decodeHtmlEntities } from "./utils";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SCHEMA.ORG RECIPE TYPE
@@ -263,7 +263,7 @@ function parseSchemaRecipe(schema: SchemaRecipe): Recipe {
 
   // Parse ingredients
   const ingredients: ParsedIngredient[] = (schema.recipeIngredient || []).map(
-    (text: string) => ({ text })
+    (text: string) => ({ text: decodeHtmlEntities(text) })
   );
 
   // Parse time (ISO 8601 duration to minutes)
@@ -300,10 +300,10 @@ function parseSchemaRecipe(schema: SchemaRecipe): Recipe {
   };
 
   return {
-    title: schema.name || "Untitled Recipe",
-    description: schema.description,
+    title: decodeHtmlEntities(schema.name || "Untitled Recipe"),
+    description: schema.description ? decodeHtmlEntities(schema.description) : undefined,
     ingredients,
-    instructions: instructions.filter(Boolean),
+    instructions: instructions.filter(Boolean).map(decodeHtmlEntities),
     servings: parseServings(schema.recipeYield),
     prepTime: parseTime(schema.prepTime),
     cookTime: parseTime(schema.cookTime),

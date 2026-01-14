@@ -153,3 +153,48 @@ export function getKnownSite(url: string): string | null {
   const domain = getDomain(url);
   return KNOWN_RECIPE_SITES[domain] || null;
 }
+
+/**
+ * Decodes HTML entities in a string
+ * Handles common entities like &amp;, &lt;, &gt;, &quot;, &#39;, and numeric entities
+ */
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return text;
+
+  const entities: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'",
+    '&nbsp;': ' ',
+    '&copy;': '©',
+    '&reg;': '®',
+    '&trade;': '™',
+    '&mdash;': '—',
+    '&ndash;': '–',
+    '&hellip;': '…',
+    '&lsquo;': ''',
+    '&rsquo;': ''',
+    '&ldquo;': '"',
+    '&rdquo;': '"',
+  };
+
+  let result = text;
+
+  // Replace named entities
+  for (const [entity, char] of Object.entries(entities)) {
+    result = result.split(entity).join(char);
+  }
+
+  // Replace numeric entities (&#123; or &#x7B;)
+  result = result.replace(/&#(\d+);/g, (_, code) =>
+    String.fromCharCode(parseInt(code, 10))
+  );
+  result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, code) =>
+    String.fromCharCode(parseInt(code, 16))
+  );
+
+  return result;
+}
