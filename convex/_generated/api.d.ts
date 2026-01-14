@@ -14,6 +14,7 @@ import type * as lib_toolHandlers from "../lib/toolHandlers.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as recipes from "../recipes.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
   recipes: typeof recipes;
+  users: typeof users;
 }>;
 
 /**

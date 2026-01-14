@@ -1,7 +1,7 @@
 // src/screens/HomeScreen.tsx
 // Main recipe library screen
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -10,10 +10,10 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { useQuery, useAction } from 'convex/react';
+import { useQuery, useAction, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '../../convex/_generated/api';
-import { Doc } from '../../convex/_generated/dataModel';
+import { Doc, Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing } from '../styles/theme';
@@ -31,10 +31,27 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [extractError, setExtractError] = useState<string | undefined>();
   const [isExtracting, setIsExtracting] = useState(false);
+  const [userId, setUserId] = useState<Id<"users"> | null>(null);
 
-  // Fetch recipes
+  // Fetch recipes and get/create demo user
   const recipes = useQuery(api.recipes.list) || [];
   const extractRecipe = useAction(api.extraction.extractRecipe);
+  const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
+
+  // Initialize demo user on mount
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        const user = await getOrCreateDemoUser();
+        if (user) {
+          setUserId(user._id);
+        }
+      } catch (error) {
+        console.error('Failed to initialize user:', error);
+      }
+    };
+    initUser();
+  }, [getOrCreateDemoUser]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -44,13 +61,18 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   }, []);
 
   const handleExtract = async (url: string) => {
+    if (!userId) {
+      setExtractError('User not initialized. Please try again.');
+      return;
+    }
+
     setExtractError(undefined);
     setIsExtracting(true);
 
     try {
       const result = await extractRecipe({
         url,
-        userId: 'current-user-id', // Would come from auth context
+        userId,
       });
 
       if (result.success && result.recipe) {
