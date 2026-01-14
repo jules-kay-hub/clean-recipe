@@ -9,6 +9,7 @@ import {
   IngredientCategory,
   FetchResult,
   Recipe,
+  SavedRecipe,
 } from "./types";
 import { hashUrl, decodeHtmlEntities } from "./utils";
 
@@ -45,7 +46,7 @@ export async function handleCheckCache(
   ctx: ActionCtx,
   userId: Id<"users">,
   url: string
-): Promise<{ found: boolean; recipe?: Recipe; source?: string }> {
+): Promise<{ found: boolean; recipe?: SavedRecipe; source?: string }> {
   const urlHash = hashUrl(url);
 
   // Check user's personal cache
@@ -55,7 +56,7 @@ export async function handleCheckCache(
   });
 
   if (userCached) {
-    return { found: true, recipe: userCached, source: "user_cache" };
+    return { found: true, recipe: userCached as SavedRecipe, source: "user_cache" };
   }
 
   // Check global cache
@@ -74,7 +75,9 @@ export async function handleCheckCache(
       id: recipeId,
     });
 
-    return { found: true, recipe, source: "global_cache" };
+    if (recipe) {
+      return { found: true, recipe: recipe as SavedRecipe, source: "global_cache" };
+    }
   }
 
   return { found: false };

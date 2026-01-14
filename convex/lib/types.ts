@@ -52,6 +52,23 @@ export interface Recipe {
   nutrition?: Nutrition;
 }
 
+/**
+ * Recipe with Convex database fields (after being saved/fetched)
+ */
+export interface SavedRecipe extends Recipe {
+  _id: Id<"recipes">;
+  _creationTime: number;
+  userId: Id<"users">;
+  sourceUrl: string;
+  urlHash: string;
+  extractedAt: number;
+  extractionConfidence?: number;
+  extractorUsed?: string;
+  agentsUsed?: string[];
+  userModified?: boolean;
+  originalServings?: number;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // EXTRACTION TYPES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -68,7 +85,7 @@ export interface ExtractionRequest {
 
 export interface ExtractionResult {
   success: boolean;
-  recipe?: Recipe;
+  recipe?: SavedRecipe;
   error?: ExtractionError;
   cached: boolean;
   metadata: ExtractionMetadata;
@@ -106,7 +123,7 @@ export type CacheSource =
   | "extraction_failed"
   | "error";
 
-export type ExtractorType = "schema" | "site_specific" | "generic" | "llm";
+export type ExtractorType = "schema" | "schema_fast_path" | "site_specific" | "generic" | "llm";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LLM ORCHESTRATOR TYPES (Option C)

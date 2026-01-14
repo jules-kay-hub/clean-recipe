@@ -4,12 +4,13 @@
 
 import { v } from "convex/values";
 import { action, ActionCtx } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   ExtractionResult,
   Recipe,
+  SavedRecipe,
   ParsedIngredient,
 } from "./lib/types";
 import { EXTRACTION_TOOLS, ORCHESTRATOR_SYSTEM_PROMPT } from "./lib/llmTools";
@@ -126,9 +127,13 @@ export const extractRecipe = action({
             id: recipeId,
           });
 
+          if (!savedRecipe) {
+            throw new Error("Failed to retrieve saved recipe");
+          }
+
           return {
             success: true,
-            recipe: savedRecipe,
+            recipe: savedRecipe as SavedRecipe,
             cached: false,
             metadata: {
               extractionTimeMs: Date.now() - startTime,
@@ -214,7 +219,7 @@ Please proceed with the extraction.`,
               if (recipe) {
                 return {
                   success: true,
-                  recipe,
+                  recipe: recipe as SavedRecipe,
                   cached: false,
                   metadata: {
                     extractionTimeMs: Date.now() - startTime,
@@ -286,9 +291,26 @@ Please proceed with the extraction.`,
         urlHash: hashUrl(url),
       });
 
+      if (!savedRecipe) {
+        return {
+          success: false,
+          error: {
+            code: "NO_RECIPE_FOUND",
+            message: "Recipe was not saved properly",
+            retryable: true,
+          },
+          cached: false,
+          metadata: {
+            extractionTimeMs: Date.now() - startTime,
+            source: "extraction_failed",
+            agentsUsed,
+          },
+        };
+      }
+
       return {
         success: true,
-        recipe: savedRecipe,
+        recipe: savedRecipe as SavedRecipe,
         cached: false,
         metadata: {
           extractionTimeMs: Date.now() - startTime,
@@ -540,7 +562,7 @@ export const forceRefresh = action({
     }
 
     // Re-extract with forceRefresh option
-    return await ctx.runAction(internal.extraction.extractRecipe, {
+    return await ctx.runAction(api.extraction.extractRecipe, {
       url: recipe.sourceUrl,
       userId,
       options: { forceRefresh: true },
