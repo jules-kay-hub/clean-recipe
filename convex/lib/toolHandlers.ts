@@ -172,20 +172,86 @@ export function handleExtractSchema(html: string): Recipe | null {
   return null;
 }
 
+// Helper to extract instruction text from various schema.org formats
+function extractInstructionText(inst: unknown): string | null {
+  if (typeof inst === "string") return inst;
+  if (typeof inst !== "object" || inst === null) return null;
+
+  const instObj = inst as Record<string, unknown>;
+
+  // Skip HowToSection - these contain nested steps, not direct text
+  if (instObj["@type"] === "HowToSection") {
+    return null;
+  }
+
+  // HowToStep - most common format
+  if (instObj["@type"] === "HowToStep") {
+    return String(instObj.text || instObj.name || "");
+  }
+
+  // Object with text property (but not a section)
+  if (instObj.text && typeof instObj.text === "string") {
+    return instObj.text;
+  }
+
+  // Object with name property (less common, and only if no @type that indicates nesting)
+  if (!instObj["@type"] && instObj.name && typeof instObj.name === "string") {
+    return instObj.name;
+  }
+
+  return null;
+}
+
+// Flatten nested instruction structures (HowToSection, itemListElement, etc.)
+function flattenInstructions(items: unknown[]): string[] {
+  const results: string[] = [];
+
+  for (const item of items) {
+    // Try to extract directly as a step
+    const text = extractInstructionText(item);
+    if (text) {
+      results.push(text);
+      continue;
+    }
+
+    // Handle HowToSection containing itemListElement
+    if (typeof item === "object" && item !== null) {
+      const itemObj = item as Record<string, unknown>;
+
+      // HowToSection with itemListElement (nested steps)
+      if (itemObj["@type"] === "HowToSection" && Array.isArray(itemObj.itemListElement)) {
+        // Optionally add section name as a header
+        if (itemObj.name && typeof itemObj.name === "string") {
+          results.push(`**${itemObj.name}**`);
+        }
+        // Recursively flatten the nested items
+        results.push(...flattenInstructions(itemObj.itemListElement));
+        continue;
+      }
+
+      // Generic itemListElement (without HowToSection wrapper)
+      if (Array.isArray(itemObj.itemListElement)) {
+        results.push(...flattenInstructions(itemObj.itemListElement));
+        continue;
+      }
+
+      // Array of steps directly
+      if (Array.isArray(itemObj.steps)) {
+        results.push(...flattenInstructions(itemObj.steps));
+        continue;
+      }
+    }
+  }
+
+  return results.filter(Boolean);
+}
+
 function parseSchemaRecipe(schema: SchemaRecipe): Recipe {
-  // Parse instructions
+  // Parse instructions - handles various schema.org formats
   let instructions: string[] = [];
   if (schema.recipeInstructions) {
     if (Array.isArray(schema.recipeInstructions)) {
-      instructions = schema.recipeInstructions.map((inst: unknown) => {
-        if (typeof inst === "string") return inst;
-        if (typeof inst === "object" && inst !== null) {
-          const instObj = inst as Record<string, unknown>;
-          if (instObj.text) return String(instObj.text);
-          if (instObj["@type"] === "HowToStep") return String(instObj.text || instObj.name || "");
-        }
-        return String(inst);
-      });
+      instructions = flattenInstructions(schema.recipeInstructions);
     } else if (typeof schema.recipeInstructions === "string") {
       // Split on newlines or numbered patterns
       instructions = schema.recipeInstructions

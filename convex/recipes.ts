@@ -131,6 +131,17 @@ export const getUserById = internalQuery({
   },
 });
 
+/**
+ * Delete recipe by ID (internal - for testing/admin)
+ */
+export const deleteByIdInternal = internalMutation({
+  args: { id: v.id("recipes") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
+  },
+});
+
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PUBLIC MUTATIONS
 // ═══════════════════════════════════════════════════════════════════════════
