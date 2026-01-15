@@ -31,6 +31,7 @@ import { ScreenTitle, Caption, EmptyState, Spinner } from '../components/ui';
 import { URLInput } from '../components/URLInput';
 import { RecipeCard } from '../components/RecipeCard';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { JuliennedIcon } from '../components/JuliennedIcon';
 
 // Animated grid item for stagger effect
 interface AnimatedGridItemProps {
@@ -364,9 +365,12 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View>
-              <ScreenTitle>Recipes</ScreenTitle>
-              <Caption>{recipes.length} saved</Caption>
+            <View style={styles.headerTitleRow}>
+              <JuliennedIcon size={36} />
+              <View>
+                <ScreenTitle>Recipes</ScreenTitle>
+                <Caption>{recipes.length} saved</Caption>
+              </View>
             </View>
 
             {/* Expandable Pill Search */}
@@ -627,6 +631,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   searchPill: {
     flexDirection: 'row',

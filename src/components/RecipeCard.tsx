@@ -120,12 +120,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.sm,
+    // Fixed height for consistent cards: title (2 lines) + meta row + spacing
+    height: 88,
+    justifyContent: 'space-between',
   },
   title: {
     fontFamily: typography.fonts.display,
     fontSize: typography.sizes.body,
     lineHeight: typography.sizes.body * typography.lineHeights.body,
-    marginBottom: spacing.xs,
   },
   metaContainer: {
     flexDirection: 'row',

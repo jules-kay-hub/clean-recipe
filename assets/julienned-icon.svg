@@ -1,0 +1,20 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="forestGreen" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2D6A4F"/>
+      <stop offset="100%" stop-color="#1B4332"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="225" fill="url(#forestGreen)"/>
+
+  <g transform="translate(230, 230) scale(0.55)">
+    <g stroke="white" stroke-width="51" stroke-linecap="round">
+      <line x1="68" y1="546" x2="546" y2="68"/>
+      <line x1="136" y1="682" x2="682" y2="136"/>
+      <line x1="205" y1="819" x2="819" y2="205"/>
+      <line x1="341" y1="887" x2="887" y2="341"/>
+      <line x1="478" y1="955" x2="955" y2="478"/>
+    </g>
+  </g>
+</svg>
