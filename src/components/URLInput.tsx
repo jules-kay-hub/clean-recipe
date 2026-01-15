@@ -2,10 +2,13 @@
 // URL input with extract button for adding recipes
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Keyboard } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Keyboard, Platform } from 'react-native';
 import { Link } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows, touchTargets } from '../styles/theme';
+
+// Web-specific styles to remove browser focus outlines
+const webInputStyle = Platform.OS === 'web' ? { outlineStyle: 'none' } : {};
 
 interface URLInputProps {
   onExtract: (url: string) => void;
@@ -39,72 +42,79 @@ export function URLInput({ onExtract, isLoading = false, error }: URLInputProps)
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.inputContainer,
-          {
-            backgroundColor: colors.surface,
-            borderColor: error
-              ? colors.error
-              : isFocused
-              ? colors.borderFocus
-              : colors.border,
-          },
-          shadows.sm,
-        ]}
-      >
-        {/* URL Icon */}
-        <View style={{ marginRight: spacing.sm }}>
-          <Link size={20} color={colors.textSecondary} strokeWidth={1.5} />
+      <View style={styles.inputRow}>
+        {/* URL Input Container */}
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: colors.surface,
+              borderColor: error
+                ? colors.error
+                : isFocused
+                ? colors.buttonPrimary
+                : colors.border,
+            },
+            shadows.sm,
+          ]}
+        >
+          {/* URL Icon */}
+          <View style={{ marginRight: spacing.sm }}>
+            <Link size={20} color={isFocused ? colors.buttonPrimary : colors.textSecondary} strokeWidth={1.5} />
+          </View>
+
+          {/* Input */}
+          <TextInput
+            value={url}
+            onChangeText={setUrl}
+            placeholder="Paste recipe URL..."
+            placeholderTextColor={colors.textMuted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            returnKeyType="go"
+            onSubmitEditing={handleExtract}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            editable={!isLoading}
+            style={[styles.input, { color: colors.text }, webInputStyle as any]}
+          />
+
+          {/* Clear Button */}
+          {url.length > 0 && !isLoading && (
+            <Pressable
+              onPress={() => setUrl('')}
+              style={({ pressed }) => [
+                styles.clearButton,
+                { opacity: pressed ? 0.6 : 1 },
+              ]}
+            >
+              <Text style={[styles.clearText, { color: colors.textMuted }]}>✕</Text>
+            </Pressable>
+          )}
         </View>
 
-        {/* Input */}
-        <TextInput
-          value={url}
-          onChangeText={setUrl}
-          placeholder="Paste recipe URL..."
-          placeholderTextColor={colors.textMuted}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          returnKeyType="go"
-          onSubmitEditing={handleExtract}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          editable={!isLoading}
-          style={[styles.input, { color: colors.text }]}
-        />
-
-        {/* Clear Button */}
-        {url.length > 0 && !isLoading && (
-          <Pressable
-            onPress={() => setUrl('')}
-            style={({ pressed }) => [
-              styles.clearButton,
-              { opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Text style={[styles.clearText, { color: colors.textMuted }]}>✕</Text>
-          </Pressable>
-        )}
-
-        {/* Extract Button */}
+        {/* Extract Button - Separate */}
         <Pressable
           onPress={handleExtract}
           disabled={!canSubmit}
-          style={({ pressed }) => [
+          style={({ pressed, hovered }) => [
             styles.extractButton,
             {
-              backgroundColor: canSubmit ? colors.accent : colors.border,
-              opacity: pressed ? 0.9 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
+              backgroundColor: !canSubmit
+                ? colors.border
+                : pressed
+                ? colors.buttonPrimaryPressed
+                : colors.buttonPrimary,
+              transform: [{ scale: pressed ? 0.97 : 1 }],
             },
+            shadows.sm,
           ]}
         >
           {isLoading ? (
             <Text style={styles.loadingText}>⏳</Text>
           ) : (
-            <Text style={[styles.extractText, { color: colors.textInverse }]}>
+            <Text style={[styles.extractText, { color: '#FFFFFF' }]}>
               Extract
             </Text>
           )}
@@ -130,13 +140,18 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: spacing.lg,
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: spacing.sm,
+  },
   inputContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: borderRadius.md,
-    borderWidth: 2,
-    paddingLeft: spacing.md,
-    overflow: 'hidden',
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
   },
   input: {
     flex: 1,
@@ -147,7 +162,6 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: spacing.sm,
-    marginRight: spacing.xs,
   },
   clearText: {
     fontSize: 16,
@@ -156,8 +170,9 @@ const styles = StyleSheet.create({
   extractButton: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    alignSelf: 'stretch',
     justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
     minHeight: touchTargets.recommended,
   },
   extractText: {

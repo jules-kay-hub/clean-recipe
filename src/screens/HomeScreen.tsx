@@ -13,8 +13,12 @@ import {
   Text,
   TextInput,
   Pressable,
+  Platform,
 } from 'react-native';
 import { CheckCircle, Search, X, ChevronDown } from 'lucide-react-native';
+
+// Web-specific styles to remove browser focus outlines
+const webInputStyle = Platform.OS === 'web' ? { outlineStyle: 'none' } : {};
 import { useQuery, useAction, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '../../convex/_generated/api';
@@ -311,45 +315,52 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
               <ScreenTitle>Recipes</ScreenTitle>
               <Caption>{recipes.length} saved</Caption>
             </View>
+
+            {/* Expandable Pill Search */}
             {recipes.length > 0 && (
               <Pressable
-                onPress={() => setSearchExpanded(!searchExpanded)}
+                onPress={() => !searchExpanded && setSearchExpanded(true)}
                 style={[
-                  styles.searchIconButton,
+                  styles.searchPill,
+                  searchExpanded && styles.searchPillExpanded,
                   {
-                    backgroundColor: searchExpanded ? colors.primary : colors.surface,
-                    borderColor: searchExpanded ? colors.primary : colors.border,
+                    backgroundColor: colors.surface,
+                    borderColor: searchExpanded ? colors.buttonPrimary : colors.border,
                   },
                 ]}
               >
                 <Search
-                  size={20}
-                  color={searchExpanded ? colors.textInverse : colors.textSecondary}
+                  size={18}
+                  color={searchExpanded ? colors.buttonPrimary : colors.textSecondary}
                   strokeWidth={1.5}
                 />
+                {searchExpanded && (
+                  <>
+                    <TextInput
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      placeholder="Search recipes..."
+                      placeholderTextColor={colors.textMuted}
+                      style={[styles.searchInput, { color: colors.text }, webInputStyle as any]}
+                      autoFocus
+                      onBlur={() => {
+                        if (!searchQuery) setSearchExpanded(false);
+                      }}
+                    />
+                    {searchQuery.length > 0 ? (
+                      <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                        <X size={18} color={colors.textMuted} strokeWidth={1.5} />
+                      </Pressable>
+                    ) : (
+                      <Pressable onPress={() => setSearchExpanded(false)} hitSlop={8}>
+                        <X size={18} color={colors.textMuted} strokeWidth={1.5} />
+                      </Pressable>
+                    )}
+                  </>
+                )}
               </Pressable>
             )}
           </View>
-
-          {/* Expandable Search Bar */}
-          {searchExpanded && recipes.length > 0 && (
-            <View style={[styles.searchContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
-              <Search size={18} color={colors.textMuted} strokeWidth={1.5} />
-              <TextInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="Search recipes..."
-                placeholderTextColor={colors.textMuted}
-                style={[styles.searchInput, { color: colors.text }]}
-                autoFocus
-              />
-              {searchQuery.length > 0 && (
-                <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                  <X size={18} color={colors.textMuted} strokeWidth={1.5} />
-                </Pressable>
-              )}
-            </View>
-          )}
         </View>
 
         {/* URL Input */}
@@ -560,23 +571,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  searchIconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchContainer: {
+  searchPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
+    height: 40,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
     borderWidth: 1,
-    marginTop: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.xs,
+  },
+  searchPillExpanded: {
+    flex: 1,
+    marginLeft: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   searchInput: {
     flex: 1,

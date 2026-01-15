@@ -5,6 +5,7 @@ export const colors = {
   // Primary Palette - Deep Navy
   navy: '#0D1B2A',
   navyLight: '#4A6FA5',
+  navyMedium: '#3A5A8A', // Darker variant for pressed states
 
   // Accent Palette - Warm Rust (Von Restorff Effect)
   rust: '#B86A4A',
@@ -70,6 +71,10 @@ export const lightTheme = {
     cardBackground: colors.white,
     inputBackground: colors.cream,
 
+    // CTA Button - prominent and accessible
+    buttonPrimary: colors.navyLight,
+    buttonPrimaryPressed: colors.navyMedium,
+
     checkboxActive: colors.navy,
     checkboxInactive: colors.border,
 
@@ -109,6 +114,10 @@ export const darkTheme: Theme = {
     cardBackground: colors.darkSurface,
     inputBackground: colors.darkBorder,
 
+    // CTA Button - prominent and accessible
+    buttonPrimary: colors.navyLight,
+    buttonPrimaryPressed: colors.navyMedium,
+
     checkboxActive: colors.navyLight,
     checkboxInactive: colors.darkBorder,
 
@@ -141,6 +150,8 @@ export interface Theme {
     tabBarBackground: string;
     cardBackground: string;
     inputBackground: string;
+    buttonPrimary: string;
+    buttonPrimaryPressed: string;
     checkboxActive: string;
     checkboxInactive: string;
     overlay: string;
