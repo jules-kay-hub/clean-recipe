@@ -1,7 +1,7 @@
 // src/components/URLInput.tsx
 // URL input with extract button for adding recipes
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Keyboard, Platform } from 'react-native';
 import { Link } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
@@ -14,12 +14,22 @@ interface URLInputProps {
   onExtract: (url: string) => void;
   isLoading?: boolean;
   error?: string;
+  clearTrigger?: number; // Increment this to clear the URL input
 }
 
-export function URLInput({ onExtract, isLoading = false, error }: URLInputProps) {
+export function URLInput({ onExtract, isLoading = false, error, clearTrigger }: URLInputProps) {
   const colors = useColors();
   const [url, setUrl] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const prevClearTrigger = useRef(clearTrigger);
+
+  // Clear URL when clearTrigger changes
+  useEffect(() => {
+    if (clearTrigger !== undefined && clearTrigger !== prevClearTrigger.current) {
+      setUrl('');
+      prevClearTrigger.current = clearTrigger;
+    }
+  }, [clearTrigger]);
 
   const handleExtract = () => {
     if (url.trim()) {

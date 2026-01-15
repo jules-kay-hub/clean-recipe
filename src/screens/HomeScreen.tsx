@@ -116,6 +116,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [sortOption, setSortOption] = useState<'recent' | 'oldest' | 'az' | 'za'>('recent');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [timeFilter, setTimeFilter] = useState<'all' | 'quick'>('all');
+  const [urlClearTrigger, setUrlClearTrigger] = useState(0);
 
   // Fetch recipes and get/create demo user
   const extractRecipe = useAction(api.extraction.extractRecipe);
@@ -251,6 +252,9 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       });
 
       if (result.success && result.recipe) {
+        // Clear the URL input on success
+        setUrlClearTrigger(prev => prev + 1);
+
         // Show success feedback
         setShowSuccess(true);
         Animated.parallel([
@@ -425,6 +429,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           onExtract={handleExtract}
           isLoading={isExtracting}
           error={extractError}
+          clearTrigger={urlClearTrigger}
         />
 
         {/* Sort & Filter Bar */}
