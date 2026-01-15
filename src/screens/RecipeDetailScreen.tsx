@@ -14,11 +14,13 @@ import {
 } from 'react-native';
 import { useQuery } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ArrowLeft, Clock } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, typography, shadows } from '../styles/theme';
+import { formatRelativeTime } from '../utils/dateUtils';
 import {
   HeroTitle,
   SectionHeader,
@@ -141,7 +143,7 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
           <View style={styles.metaRow}>
             {totalTime > 0 && (
               <View style={styles.metaItem}>
-                <Text style={styles.metaIcon}>⏱</Text>
+                <Clock size={16} color={colors.textSecondary} strokeWidth={1.5} />
                 <Caption>{totalTime} min</Caption>
               </View>
             )}
@@ -216,14 +218,21 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
             </View>
           </View>
 
-          {/* Source Link */}
-          {recipe.sourceUrl && (
+          {/* Source Link & Added Date */}
+          {(recipe.sourceUrl || recipe.extractedAt) && (
             <>
               <Divider />
               <View style={styles.sourceSection}>
-                <Caption>
-                  Source: {new URL(recipe.sourceUrl).hostname.replace('www.', '')}
-                </Caption>
+                {recipe.sourceUrl && (
+                  <Caption>
+                    Source: {new URL(recipe.sourceUrl).hostname.replace('www.', '')}
+                  </Caption>
+                )}
+                {recipe.extractedAt && (
+                  <Caption style={styles.addedCaption}>
+                    Added {formatRelativeTime(recipe.extractedAt)}
+                  </Caption>
+                )}
               </View>
             </>
           )}
@@ -232,8 +241,8 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
 
       {/* Sticky CTA */}
       <View style={[styles.cta, { backgroundColor: colors.background }, shadows.lg]}>
-        <Button onPress={startCooking} variant="accent" fullWidth icon={<Text>🍳</Text>}>
-          Start Cooking
+        <Button onPress={startCooking} variant="accent" fullWidth>
+          Cook
         </Button>
       </View>
     </SafeAreaView>
@@ -292,9 +301,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  metaIcon: {
-    fontSize: 16,
-  },
   servingsSection: {
     paddingVertical: spacing.md,
   },
@@ -333,6 +339,10 @@ const styles = StyleSheet.create({
   sourceSection: {
     paddingVertical: spacing.md,
     alignItems: 'center',
+    gap: spacing.xs,
+  },
+  addedCaption: {
+    marginTop: spacing.xs,
   },
   cta: {
     position: 'absolute',

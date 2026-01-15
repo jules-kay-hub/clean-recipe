@@ -21,6 +21,9 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   destructive?: boolean;
+  // Optional secondary action (shown as outline button)
+  secondaryText?: string;
+  onSecondary?: () => void;
 }
 
 export function ConfirmModal({
@@ -32,6 +35,8 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
   destructive = false,
+  secondaryText,
+  onSecondary,
 }: ConfirmModalProps) {
   const colors = useColors();
 
@@ -73,7 +78,7 @@ export function ConfirmModal({
                 styles.button,
                 styles.confirmButton,
                 {
-                  backgroundColor: destructive ? '#DC3545' : colors.primary,
+                  backgroundColor: destructive ? '#DC3545' : colors.accent,
                   opacity: pressed ? 0.7 : 1,
                 },
               ]}
@@ -83,6 +88,24 @@ export function ConfirmModal({
               </Text>
             </Pressable>
           </View>
+
+          {/* Optional secondary action */}
+          {secondaryText && onSecondary && (
+            <Pressable
+              onPress={onSecondary}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                {
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Text style={[styles.buttonText, { color: colors.primary }]}>
+                {secondaryText}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </Modal>
@@ -138,6 +161,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   confirmButton: {},
+  secondaryButton: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   buttonText: {
     fontFamily: typography.fonts.sans,
     fontSize: typography.sizes.body,

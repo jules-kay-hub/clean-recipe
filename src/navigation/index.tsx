@@ -6,6 +6,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BookOpen, Calendar, ShoppingCart, Settings } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing } from '../styles/theme';
 
@@ -54,26 +55,32 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 interface TabIconProps {
   focused: boolean;
-  icon: string;
+  Icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
   label: string;
 }
 
-function TabIcon({ focused, icon, label }: TabIconProps) {
+function TabIcon({ focused, Icon, label }: TabIconProps) {
   const colors = useColors();
+  const color = focused ? colors.tabBarActive : colors.tabBarInactive;
 
   return (
     <View style={styles.tabIcon}>
-      <Text style={[styles.tabEmoji, { opacity: focused ? 1 : 0.6 }]}>
-        {icon}
-      </Text>
+      <Icon size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
       <Text
         style={[
           styles.tabLabel,
-          { color: focused ? colors.tabBarActive : colors.tabBarInactive },
+          { color },
         ]}
       >
         {label}
       </Text>
+      {/* Active indicator pill */}
+      <View
+        style={[
+          styles.activeIndicator,
+          { backgroundColor: focused ? colors.accent : 'transparent' },
+        ]}
+      />
     </View>
   );
 }
@@ -103,7 +110,7 @@ function MainTabs() {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="📖" label="Recipes" />
+            <TabIcon focused={focused} Icon={BookOpen} label="Recipes" />
           ),
         }}
       />
@@ -112,7 +119,7 @@ function MainTabs() {
         component={MealPlannerScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="📅" label="Plan" />
+            <TabIcon focused={focused} Icon={Calendar} label="Plan" />
           ),
         }}
       />
@@ -121,7 +128,7 @@ function MainTabs() {
         component={ShoppingListScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="🛒" label="Shop" />
+            <TabIcon focused={focused} Icon={ShoppingCart} label="Shop" />
           ),
         }}
       />
@@ -130,7 +137,7 @@ function MainTabs() {
         component={SettingsScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="⚙️" label="Settings" />
+            <TabIcon focused={focused} Icon={Settings} label="Settings" />
           ),
         }}
       />
@@ -212,13 +219,16 @@ const styles = StyleSheet.create({
   tabIcon: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  tabEmoji: {
-    fontSize: 24,
-    marginBottom: 2,
+    gap: 2,
   },
   tabLabel: {
     fontFamily: typography.fonts.sansMedium,
     fontSize: 10,
+  },
+  activeIndicator: {
+    width: 20,
+    height: 3,
+    borderRadius: 1.5,
+    marginTop: 4,
   },
 });

@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Keyboard } from 'react-native';
+import { Link } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows, touchTargets } from '../styles/theme';
 
@@ -53,7 +54,9 @@ export function URLInput({ onExtract, isLoading = false, error }: URLInputProps)
         ]}
       >
         {/* URL Icon */}
-        <Text style={styles.icon}>🔗</Text>
+        <View style={{ marginRight: spacing.sm }}>
+          <Link size={20} color={colors.textSecondary} strokeWidth={1.5} />
+        </View>
 
         {/* Input */}
         <TextInput
@@ -92,7 +95,7 @@ export function URLInput({ onExtract, isLoading = false, error }: URLInputProps)
           style={({ pressed }) => [
             styles.extractButton,
             {
-              backgroundColor: canSubmit ? colors.primary : colors.border,
+              backgroundColor: canSubmit ? colors.accent : colors.border,
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             },
@@ -134,10 +137,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     paddingLeft: spacing.md,
     overflow: 'hidden',
-  },
-  icon: {
-    fontSize: 18,
-    marginRight: spacing.sm,
   },
   input: {
     flex: 1,

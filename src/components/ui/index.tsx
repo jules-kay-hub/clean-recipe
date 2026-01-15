@@ -1,7 +1,7 @@
 // src/components/ui/index.tsx
-// CleanRecipe UI Component Library
+// Rogue Recipe UI Component Library
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -56,12 +56,12 @@ export function SectionHeader({ children, style }: TextProps) {
   const colors = useColors();
   return (
     <Text style={[{
-      fontFamily: typography.fonts.sansBold,
+      fontFamily: typography.fonts.sansMedium,
       fontSize: typography.sizes.label,
       lineHeight: typography.sizes.label * typography.lineHeights.label,
-      color: colors.primary,
+      color: colors.textSecondary,
       textTransform: 'uppercase',
-      letterSpacing: 1,
+      letterSpacing: 0.6,
     }, style]}>
       {children}
     </Text>
@@ -106,7 +106,7 @@ export function Caption({ children, style, numberOfLines }: TextProps) {
 interface ButtonProps {
   children: ReactNode;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'accent' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'accent';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
@@ -132,8 +132,8 @@ export function Button({
     if (disabled) return colors.border;
     switch (variant) {
       case 'primary': return colors.primary;
+      case 'accent': return colors.accent; // Warm rust for main CTAs
       case 'secondary': return 'transparent';
-      case 'accent': return colors.accent;
       case 'ghost': return 'transparent';
       default: return colors.primary;
     }
@@ -143,8 +143,8 @@ export function Button({
     if (disabled) return colors.textMuted;
     switch (variant) {
       case 'primary': return colors.textInverse;
-      case 'secondary': return colors.primary;
       case 'accent': return colors.textInverse;
+      case 'secondary': return colors.primary;
       case 'ghost': return colors.primary;
       default: return colors.textInverse;
     }
@@ -192,7 +192,7 @@ export function Button({
         <>
           {icon}
           <Text style={{
-            fontFamily: typography.fonts.sansBold,
+            fontFamily: typography.fonts.sansMedium,
             fontSize: typography.sizes.button,
             color: getTextColor(),
           }}>
@@ -494,18 +494,48 @@ export function Spinner({ size = 'large', color }: SpinnerProps) {
 // EMPTY STATE
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface EmptyStateProps {
-  icon?: ReactNode;
+interface EmptyStateMessage {
   title: string;
   description?: string;
+}
+
+interface EmptyStateProps {
+  icon?: ReactNode;
+  title?: string;
+  description?: string;
+  messages?: EmptyStateMessage[];
+  rotateInterval?: number;
   action?: {
     label: string;
     onPress: () => void;
   };
 }
 
-export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  description,
+  messages,
+  rotateInterval = 4000,
+  action
+}: EmptyStateProps) {
   const colors = useColors();
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  // Rotate through messages
+  useEffect(() => {
+    if (!messages || messages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messages.length);
+    }, rotateInterval);
+
+    return () => clearInterval(interval);
+  }, [messages, rotateInterval]);
+
+  // Get current display content
+  const displayTitle = messages ? messages[messageIndex].title : title;
+  const displayDescription = messages ? messages[messageIndex].description : description;
 
   return (
     <View style={{
@@ -526,9 +556,9 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
         textAlign: 'center',
         marginBottom: spacing.sm,
       }}>
-        {title}
+        {displayTitle}
       </Text>
-      {description && (
+      {displayDescription && (
         <Text style={{
           fontFamily: typography.fonts.sans,
           fontSize: typography.sizes.body,
@@ -536,11 +566,11 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
           textAlign: 'center',
           marginBottom: spacing.lg,
         }}>
-          {description}
+          {displayDescription}
         </Text>
       )}
       {action && (
-        <Button onPress={action.onPress} variant="primary">
+        <Button onPress={action.onPress} variant="accent">
           {action.label}
         </Button>
       )}

@@ -16,6 +16,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
+import { Share2 } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { RootStackParamList, TabParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
@@ -58,18 +59,18 @@ interface ShoppingItem {
   recipes: string[];
 }
 
-// Category display order and icons
-const CATEGORIES: { key: string; label: string; icon: string }[] = [
-  { key: 'produce', label: 'Produce', icon: '🥬' },
-  { key: 'meat_seafood', label: 'Meat & Seafood', icon: '🥩' },
-  { key: 'dairy', label: 'Dairy', icon: '🧀' },
-  { key: 'bakery', label: 'Bakery', icon: '🍞' },
-  { key: 'pantry', label: 'Pantry', icon: '🥫' },
-  { key: 'frozen', label: 'Frozen', icon: '❄️' },
-  { key: 'spices', label: 'Spices', icon: '🧂' },
-  { key: 'condiments', label: 'Condiments', icon: '🍯' },
-  { key: 'beverages', label: 'Beverages', icon: '🥤' },
-  { key: 'other', label: 'Other', icon: '📦' },
+// Category display order with subtle color chips
+const CATEGORIES: { key: string; label: string; color: string }[] = [
+  { key: 'produce', label: 'Produce', color: '#5C7C5A' },      // Sage green
+  { key: 'meat_seafood', label: 'Meat & Seafood', color: '#C45A5A' }, // Muted red
+  { key: 'dairy', label: 'Dairy', color: '#5A8AC4' },          // Soft blue
+  { key: 'bakery', label: 'Bakery', color: '#D4A84A' },        // Warm gold
+  { key: 'pantry', label: 'Pantry', color: '#8B7355' },        // Warm brown
+  { key: 'frozen', label: 'Frozen', color: '#7AAAE4' },        // Ice blue
+  { key: 'spices', label: 'Spices', color: '#B86A4A' },        // Rust
+  { key: 'condiments', label: 'Condiments', color: '#9B7CB4' }, // Soft purple
+  { key: 'beverages', label: 'Beverages', color: '#4A8C8C' },  // Teal
+  { key: 'other', label: 'Other', color: '#6B6B6B' },          // Gray
 ];
 
 // Get current week dates
@@ -296,7 +297,7 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
         {/* Actions */}
         {totalCount > 0 && (
           <View style={styles.actions}>
-            <Button onPress={handleShare} variant="secondary" size="sm" icon={<Text>📤</Text>}>
+            <Button onPress={handleShare} variant="secondary" size="sm">
               Share
             </Button>
             {checkedCount > 0 && (
@@ -310,11 +311,13 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
         {/* Empty State */}
         {items.length === 0 ? (
           <EmptyState
-            icon={<Text style={{ fontSize: 48 }}>🛒</Text>}
-            title="Your list is empty"
-            description="Plan some meals to generate a shopping list"
+            messages={[
+              { title: "Nothing to shop for", description: "Plan some meals to build your list" },
+              { title: "Your list is empty", description: "Add recipes to your meal plan" },
+              { title: "Ready to shop?", description: "Plan your week's meals first" },
+            ]}
             action={{
-              label: 'Go to Meal Planner',
+              label: 'Plan Meals',
               onPress: () => navigation.navigate('MealPlanner'),
             }}
           />
@@ -325,7 +328,7 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
               <View key={category.key} style={styles.categorySection}>
                 {/* Category Header */}
                 <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryIcon}>{category.icon}</Text>
+                  <View style={[styles.categoryChip, { backgroundColor: category.color }]} />
                   <SectionHeader>{category.label}</SectionHeader>
                   <Caption style={styles.categoryCount}>
                     {groupedItems[category.key].filter((i) => !i.checked).length}
@@ -405,12 +408,11 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
         {/* All Done State */}
         {items.length > 0 && checkedCount === totalCount && (
           <View style={styles.allDone}>
-            <Text style={styles.allDoneIcon}>🎉</Text>
             <Text style={[styles.allDoneText, { color: colors.text }]}>
-              All done!
+              List complete
             </Text>
-            <Button onPress={handleClearChecked} variant="primary">
-              Clear List
+            <Button onPress={handleClearChecked} variant="accent">
+              Clear
             </Button>
           </View>
         )}
@@ -459,8 +461,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
-  categoryIcon: {
-    fontSize: 18,
+  categoryChip: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   categoryCount: {
     marginLeft: 'auto',
@@ -501,9 +505,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xl,
     gap: spacing.md,
-  },
-  allDoneIcon: {
-    fontSize: 48,
   },
   allDoneText: {
     fontFamily: typography.fonts.display,

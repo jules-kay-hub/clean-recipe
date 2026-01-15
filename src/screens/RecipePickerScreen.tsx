@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { UtensilsCrossed, Clock, Users } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
@@ -114,7 +115,7 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
             />
           ) : (
             <View style={[styles.imagePlaceholder, { backgroundColor: colors.border }]}>
-              <Text style={styles.placeholderEmoji}>🍽️</Text>
+              <UtensilsCrossed size={24} color={colors.textSecondary} strokeWidth={1.5} />
             </View>
           )}
         </View>
@@ -131,7 +132,7 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
           <View style={styles.metaRow}>
             {totalTime > 0 && (
               <View style={styles.metaItem}>
-                <Text style={styles.metaIcon}>⏱</Text>
+                <Clock size={12} color={colors.textSecondary} strokeWidth={1.5} />
                 <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                   {totalTime} min
                 </Text>
@@ -139,7 +140,7 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
             )}
             {item.servings && (
               <View style={styles.metaItem}>
-                <Text style={styles.metaIcon}>👤</Text>
+                <Users size={12} color={colors.textSecondary} strokeWidth={1.5} />
                 <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                   {item.servings}
                 </Text>
@@ -159,12 +160,11 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
   // Empty state
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyEmoji}>📖</Text>
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        No Recipes Yet
+        No recipes
       </Text>
       <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-        Extract some recipes first, then come back to plan your meals
+        Add recipes first
       </Text>
       <Pressable
         onPress={() => {
@@ -175,7 +175,7 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
         style={[styles.emptyButton, { backgroundColor: colors.primary }]}
       >
         <Text style={[styles.emptyButtonText, { color: colors.textInverse }]}>
-          Go to Recipes
+          Add Recipes
         </Text>
       </Pressable>
     </View>
@@ -282,9 +282,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholderEmoji: {
-    fontSize: 32,
-  },
   content: {
     flex: 1,
     padding: spacing.md,
@@ -303,9 +300,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  metaIcon: {
-    fontSize: 12,
   },
   metaText: {
     fontFamily: typography.fonts.sans,
@@ -329,10 +323,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.xl,
     marginTop: spacing['2xl'],
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: spacing.md,
   },
   emptyTitle: {
     fontFamily: typography.fonts.display,

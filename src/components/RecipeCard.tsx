@@ -2,7 +2,8 @@
 // Recipe card component for the home screen grid
 
 import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { UtensilsCrossed, Clock, Users } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows } from '../styles/theme';
 import { decodeHtmlEntities } from '../utils/textUtils';
@@ -15,54 +16,7 @@ interface RecipeCardProps {
   cookTime?: number;
   servings?: number;
   onPress: (id: string) => void;
-  onDelete?: (id: string) => void;
-}
-
-// Web-specific delete button component
-function DeleteButton({ onDelete }: { onDelete: () => void }) {
-  if (Platform.OS === 'web') {
-    // Use a native button element for web to properly handle click events
-    return (
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onDelete();
-        }}
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 14,
-          backgroundColor: 'rgba(220, 53, 69, 0.85)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 2px 3px rgba(0,0,0,0.25)',
-        }}
-      >
-        <span style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>✕</span>
-      </div>
-    );
-  }
-
-  // Native platforms use TouchableOpacity
-  return (
-    <TouchableOpacity
-      onPress={onDelete}
-      activeOpacity={0.7}
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: 'rgba(220, 53, 69, 0.85)',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>✕</Text>
-    </TouchableOpacity>
-  );
+  onLongPress?: (id: string) => void;
 }
 
 export function RecipeCard({
@@ -73,7 +27,7 @@ export function RecipeCard({
   cookTime,
   servings,
   onPress,
-  onDelete,
+  onLongPress,
 }: RecipeCardProps) {
   const colors = useColors();
   const totalTime = (prepTime || 0) + (cookTime || 0);
@@ -81,6 +35,8 @@ export function RecipeCard({
   return (
     <Pressable
       onPress={() => onPress(id)}
+      onLongPress={onLongPress ? () => onLongPress(id) : undefined}
+      delayLongPress={500}
       style={({ pressed }) => [
         styles.container,
         {
@@ -101,14 +57,7 @@ export function RecipeCard({
           />
         ) : (
           <View style={[styles.imagePlaceholder, { backgroundColor: colors.border }]}>
-            <Text style={[styles.placeholderEmoji]}>🍽️</Text>
-          </View>
-        )}
-
-        {/* Delete Button */}
-        {onDelete && (
-          <View style={styles.deleteButtonWrapper}>
-            <DeleteButton onDelete={() => onDelete(id)} />
+            <UtensilsCrossed size={32} color={colors.textSecondary} strokeWidth={1.5} />
           </View>
         )}
       </View>
@@ -127,15 +76,15 @@ export function RecipeCard({
         <View style={styles.metaContainer}>
           {totalTime > 0 && (
             <View style={styles.metaItem}>
-              <Text style={[styles.metaIcon]}>⏱</Text>
+              <Clock size={14} color={colors.textSecondary} strokeWidth={1.5} />
               <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {totalTime} min
+                {totalTime}m
               </Text>
             </View>
           )}
           {servings && (
             <View style={styles.metaItem}>
-              <Text style={[styles.metaIcon]}>👤</Text>
+              <Users size={14} color={colors.textSecondary} strokeWidth={1.5} />
               <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                 {servings}
               </Text>
@@ -151,21 +100,13 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: borderRadius.md,
     overflow: 'hidden',
-    marginBottom: spacing.md,
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 16 / 10,
+    aspectRatio: 4 / 3,
     borderTopLeftRadius: borderRadius.md,
     borderTopRightRadius: borderRadius.md,
     overflow: 'hidden',
-    position: 'relative',
-  },
-  deleteButtonWrapper: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
-    zIndex: 10,
   },
   image: {
     width: '100%',
@@ -177,17 +118,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholderEmoji: {
-    fontSize: 48,
-  },
   content: {
-    padding: spacing.md,
+    padding: spacing.sm,
   },
   title: {
     fontFamily: typography.fonts.display,
-    fontSize: typography.sizes.sectionHeader,
-    lineHeight: typography.sizes.sectionHeader * typography.lineHeights.sectionHeader,
-    marginBottom: spacing.sm,
+    fontSize: typography.sizes.body,
+    lineHeight: typography.sizes.body * typography.lineHeights.body,
+    marginBottom: spacing.xs,
   },
   metaContainer: {
     flexDirection: 'row',
@@ -198,9 +136,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  metaIcon: {
-    fontSize: 14,
   },
   metaText: {
     fontFamily: typography.fonts.sans,

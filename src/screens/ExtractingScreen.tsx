@@ -10,6 +10,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import { UtensilsCrossed, AlertCircle } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { spacing, typography, borderRadius } from '../styles/theme';
 import { Button, Caption } from '../components/ui';
@@ -22,11 +23,11 @@ interface ExtractingScreenProps {
 }
 
 const LOADING_MESSAGES = [
-  'Fetching recipe page...',
-  'Extracting ingredients...',
-  'Parsing instructions...',
-  'Processing images...',
-  'Almost there...',
+  'Fetching page',
+  'Reading ingredients',
+  'Parsing steps',
+  'Processing',
+  'Finishing',
 ];
 
 export function ExtractingScreen({
@@ -107,7 +108,7 @@ export function ExtractingScreen({
         <View style={styles.content}>
           {/* Error Icon */}
           <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
-            <Text style={styles.errorIcon}>😕</Text>
+            <AlertCircle size={48} color={colors.error} strokeWidth={1.5} />
           </View>
 
           {/* Error Message */}
@@ -125,7 +126,7 @@ export function ExtractingScreen({
 
           {/* Actions */}
           <View style={styles.actions}>
-            <Button onPress={onRetry} variant="primary">
+            <Button onPress={onRetry} variant="accent">
               Try Again
             </Button>
             <Button onPress={onCancel} variant="ghost">
@@ -148,16 +149,14 @@ export function ExtractingScreen({
             { transform: [{ scale: pulseValue }] },
           ]}
         >
-          <Animated.Text
-            style={[styles.spinnerIcon, { transform: [{ rotate: spin }] }]}
-          >
-            🍳
-          </Animated.Text>
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
+            <UtensilsCrossed size={48} color={colors.primary} strokeWidth={1.5} />
+          </Animated.View>
         </Animated.View>
 
         {/* Status Message */}
         <Text style={[styles.title, { color: colors.text }]}>
-          Extracting Recipe
+          Extracting
         </Text>
         <Text style={[styles.message, { color: colors.textSecondary }]}>
           {LOADING_MESSAGES[messageIndex]}
@@ -210,12 +209,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xl,
-  },
-  spinnerIcon: {
-    fontSize: 56,
-  },
-  errorIcon: {
-    fontSize: 56,
   },
   title: {
     fontFamily: typography.fonts.display,

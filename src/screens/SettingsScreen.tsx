@@ -12,25 +12,28 @@ import {
   StatusBar,
   Linking,
 } from 'react-native';
+import { Sun, Moon, Smartphone, UtensilsCrossed, Ruler, Info, MessageSquare, Star, ChevronRight } from 'lucide-react-native';
 import { useTheme, useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius } from '../styles/theme';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
 interface SettingRowProps {
-  icon: string;
+  Icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
   title: string;
   subtitle?: string;
   onPress?: () => void;
-  rightElement?: React.ReactNode;
+  showChevron?: boolean;
 }
 
-function SettingRow({ icon, title, subtitle, onPress, rightElement }: SettingRowProps) {
+function SettingRow({ Icon, title, subtitle, onPress, showChevron }: SettingRowProps) {
   const colors = useColors();
 
   const content = (
     <View style={[styles.settingRow, { backgroundColor: colors.surface }]}>
-      <Text style={styles.settingIcon}>{icon}</Text>
+      <View style={styles.settingIconContainer}>
+        <Icon size={20} color={colors.textSecondary} strokeWidth={1.5} />
+      </View>
       <View style={styles.settingContent}>
         <Text style={[styles.settingTitle, { color: colors.text }]}>{title}</Text>
         {subtitle && (
@@ -39,7 +42,9 @@ function SettingRow({ icon, title, subtitle, onPress, rightElement }: SettingRow
           </Text>
         )}
       </View>
-      {rightElement}
+      {showChevron && (
+        <ChevronRight size={20} color={colors.textSecondary} strokeWidth={1.5} />
+      )}
     </View>
   );
 
@@ -57,12 +62,12 @@ function SettingRow({ icon, title, subtitle, onPress, rightElement }: SettingRow
 interface ThemeOptionProps {
   mode: ThemeMode;
   label: string;
-  icon: string;
+  Icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
   isSelected: boolean;
   onSelect: () => void;
 }
 
-function ThemeOption({ mode, label, icon, isSelected, onSelect }: ThemeOptionProps) {
+function ThemeOption({ label, Icon, isSelected, onSelect }: ThemeOptionProps) {
   const colors = useColors();
 
   return (
@@ -77,7 +82,11 @@ function ThemeOption({ mode, label, icon, isSelected, onSelect }: ThemeOptionPro
       onPress={onSelect}
       activeOpacity={0.7}
     >
-      <Text style={styles.themeIcon}>{icon}</Text>
+      <Icon
+        size={24}
+        color={isSelected ? colors.textInverse : colors.textSecondary}
+        strokeWidth={1.5}
+      />
       <Text
         style={[
           styles.themeLabel,
@@ -112,39 +121,33 @@ export function SettingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Customize your experience
-          </Text>
         </View>
 
         {/* Theme Section */}
-        <Text style={[styles.sectionHeader, { color: colors.primary }]}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
           APPEARANCE
         </Text>
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>Theme</Text>
-          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-            Choose how CleanRecipe looks
-          </Text>
           <View style={styles.themeOptions}>
             <ThemeOption
               mode="light"
               label="Light"
-              icon="☀️"
+              Icon={Sun}
               isSelected={themeMode === 'light'}
               onSelect={() => handleThemeSelect('light')}
             />
             <ThemeOption
               mode="dark"
               label="Dark"
-              icon="🌙"
+              Icon={Moon}
               isSelected={themeMode === 'dark'}
               onSelect={() => handleThemeSelect('dark')}
             />
             <ThemeOption
               mode="system"
               label="System"
-              icon="📱"
+              Icon={Smartphone}
               isSelected={themeMode === 'system'}
               onSelect={() => handleThemeSelect('system')}
             />
@@ -152,66 +155,55 @@ export function SettingsScreen() {
         </View>
 
         {/* Preferences Section */}
-        <Text style={[styles.sectionHeader, { color: colors.primary }]}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
           PREFERENCES
         </Text>
         <View style={styles.settingsGroup}>
           <SettingRow
-            icon="🍽️"
+            Icon={UtensilsCrossed}
             title="Default Servings"
-            subtitle="4 servings"
-            rightElement={
-              <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
-            }
+            subtitle="Serves 4"
+            showChevron
           />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <SettingRow
-            icon="📏"
+            Icon={Ruler}
             title="Measurement System"
-            subtitle="US (cups, tablespoons)"
-            rightElement={
-              <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
-            }
+            subtitle="US"
+            showChevron
           />
         </View>
 
         {/* About Section */}
-        <Text style={[styles.sectionHeader, { color: colors.primary }]}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
           ABOUT
         </Text>
         <View style={styles.settingsGroup}>
           <SettingRow
-            icon="📖"
-            title="CleanRecipe"
+            Icon={Info}
+            title="Rogue Recipe"
             subtitle="Version 1.0.0"
           />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <SettingRow
-            icon="💬"
-            title="Send Feedback"
-            onPress={() => Linking.openURL('mailto:feedback@cleanrecipe.app')}
-            rightElement={
-              <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
-            }
+            Icon={MessageSquare}
+            title="Feedback"
+            onPress={() => Linking.openURL('mailto:feedback@roguerecipe.app')}
+            showChevron
           />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <SettingRow
-            icon="⭐"
-            title="Rate the App"
+            Icon={Star}
+            title="Rate"
             onPress={() => {}}
-            rightElement={
-              <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
-            }
+            showChevron
           />
         </View>
 
         {/* Tagline */}
         <View style={styles.footer}>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
-            Just the recipe. Nothing else.
-          </Text>
-          <Text style={[styles.footerText, { color: colors.textMuted }]}>
-            Made with 🍳 for home cooks
+            Just the recipe.
           </Text>
         </View>
       </ScrollView>
@@ -235,14 +227,11 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.title,
     marginBottom: spacing.xs,
   },
-  subtitle: {
-    fontFamily: typography.fonts.sans,
-    fontSize: typography.sizes.caption,
-  },
   sectionHeader: {
-    fontFamily: typography.fonts.sansBold,
+    fontFamily: typography.fonts.sansMedium,
     fontSize: typography.sizes.label,
-    letterSpacing: 1,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
     marginLeft: spacing.xs,
@@ -252,13 +241,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   cardTitle: {
-    fontFamily: typography.fonts.sansBold,
+    fontFamily: typography.fonts.sansMedium,
     fontSize: typography.sizes.body,
-    marginBottom: spacing.xs,
-  },
-  cardSubtitle: {
-    fontFamily: typography.fonts.sans,
-    fontSize: typography.sizes.caption,
     marginBottom: spacing.md,
   },
   themeOptions: {
@@ -271,10 +255,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
-  },
-  themeIcon: {
-    fontSize: 24,
-    marginBottom: spacing.xs,
+    gap: spacing.xs,
   },
   themeLabel: {
     fontFamily: typography.fonts.sansMedium,
@@ -289,8 +270,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
   },
-  settingIcon: {
-    fontSize: 20,
+  settingIconContainer: {
     marginRight: spacing.md,
   },
   settingContent: {
@@ -305,13 +285,9 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.caption,
     marginTop: 2,
   },
-  chevron: {
-    fontSize: 24,
-    fontWeight: '300',
-  },
   divider: {
     height: 1,
-    marginLeft: spacing.md + 20 + spacing.md, // icon + margin
+    marginLeft: spacing.md + 20 + spacing.md,
   },
   footer: {
     alignItems: 'center',
@@ -319,13 +295,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
   },
   tagline: {
-    fontFamily: typography.fonts.display,
-    fontSize: typography.sizes.body,
-    fontStyle: 'italic',
-    marginBottom: spacing.sm,
-  },
-  footerText: {
     fontFamily: typography.fonts.sans,
-    fontSize: typography.sizes.caption,
+    fontSize: typography.sizes.body,
   },
 });

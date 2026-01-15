@@ -1,30 +1,29 @@
 // src/styles/theme.ts
-// CleanRecipe Design System
+// Rogue Recipe Design System
 
 export const colors = {
-  // Primary Palette
-  sage: '#5C7C5A',
-  sageDark: '#4A6548',
-  sageLight: '#7A9E78',
-  
-  terracotta: '#C4704E',
-  terracottaDark: '#A55A3A',
-  terracottaLight: '#D4896A',
-  
+  // Primary Palette - Deep Navy
+  navy: '#0D1B2A',
+  navyLight: '#4A6FA5',
+
+  // Accent Palette - Warm Rust (Von Restorff Effect)
+  rust: '#B86A4A',
+  rustLight: '#D4A08A',
+
   // Neutrals - Light Mode
-  cream: '#FAF8F5',
+  cream: '#FAF8F5', // Warm background (Aesthetic-Usability Effect)
   white: '#FFFFFF',
-  charcoal: '#2D2D2D',
+  ink: '#1A1A1A',
   stone: '#6B6B6B',
-  mist: '#E8E5E0',
-  
+  border: '#E8E4E1',
+
   // Neutrals - Dark Mode
-  deepCharcoal: '#1A1A1A',
-  darkSurface: '#2A2A2A',
-  darkBorder: '#3A3A3A',
+  darkBackground: '#121212',
+  darkSurface: '#1E1E1E',
+  darkBorder: '#2E2E2E',
   offWhite: '#F5F5F5',
   warmGray: '#A0A0A0',
-  
+
   // Semantic
   success: '#4A8C4A',
   successLight: '#6AAF6A',
@@ -34,7 +33,7 @@ export const colors = {
   errorLight: '#D47A7A',
   info: '#5A8AC4',
   infoLight: '#7AAAE4',
-  
+
   // Transparent
   overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.3)',
@@ -42,37 +41,37 @@ export const colors = {
 
 export const lightTheme = {
   colors: {
-    primary: colors.sage,
-    primaryDark: colors.sageDark,
-    accent: colors.terracotta,
-    accentLight: colors.terracottaLight,
+    primary: colors.navy,
+    primaryDark: colors.navy,
+    accent: colors.rust, // Warm accent for CTAs
+    accentLight: colors.rustLight,
 
-    background: colors.cream,
+    background: colors.cream, // Warm cream background
     surface: colors.white,
     surfaceElevated: colors.white,
 
-    text: colors.charcoal,
+    text: colors.ink,
     textSecondary: colors.stone,
     textInverse: colors.white,
     textMuted: colors.stone,
 
-    border: colors.mist,
-    borderFocus: colors.sage,
+    border: colors.border,
+    borderFocus: colors.navy,
 
     success: colors.success,
     warning: colors.warning,
     error: colors.error,
     info: colors.info,
 
-    tabBarActive: colors.sage,
+    tabBarActive: colors.navy,
     tabBarInactive: colors.stone,
     tabBarBackground: colors.white,
 
     cardBackground: colors.white,
     inputBackground: colors.cream,
 
-    checkboxActive: colors.terracotta,
-    checkboxInactive: colors.mist,
+    checkboxActive: colors.navy,
+    checkboxInactive: colors.border,
 
     overlay: colors.overlay,
   },
@@ -81,36 +80,36 @@ export const lightTheme = {
 
 export const darkTheme: Theme = {
   colors: {
-    primary: colors.sageLight,
-    primaryDark: colors.sage,
-    accent: colors.terracottaLight,
-    accentLight: colors.terracotta,
+    primary: colors.navyLight,
+    primaryDark: colors.navy,
+    accent: colors.rustLight, // Warm accent works on dark
+    accentLight: colors.rust,
 
-    background: colors.deepCharcoal,
+    background: colors.darkBackground,
     surface: colors.darkSurface,
     surfaceElevated: colors.darkBorder,
 
     text: colors.offWhite,
     textSecondary: colors.warmGray,
-    textInverse: colors.charcoal,
+    textInverse: colors.ink,
     textMuted: colors.warmGray,
 
     border: colors.darkBorder,
-    borderFocus: colors.sageLight,
+    borderFocus: colors.navyLight,
 
     success: colors.successLight,
     warning: colors.warningLight,
     error: colors.errorLight,
     info: colors.infoLight,
 
-    tabBarActive: colors.sageLight,
+    tabBarActive: colors.navyLight,
     tabBarInactive: colors.warmGray,
     tabBarBackground: colors.darkSurface,
 
     cardBackground: colors.darkSurface,
     inputBackground: colors.darkBorder,
 
-    checkboxActive: colors.terracottaLight,
+    checkboxActive: colors.navyLight,
     checkboxInactive: colors.darkBorder,
 
     overlay: colors.overlayLight,
@@ -151,13 +150,13 @@ export interface Theme {
 
 export type ThemeColors = Theme['colors'];
 
-// Typography
+// Typography - Fraunces serif for display, Inter for body
 export const typography = {
   fonts: {
-    sans: 'DMSans-Regular',
-    sansMedium: 'DMSans-Medium',
-    sansBold: 'DMSans-Bold',
-    display: 'Fraunces-SemiBold',
+    sans: 'Inter-Regular',
+    sansMedium: 'Inter-Medium',
+    sansBold: 'Inter-SemiBold',
+    display: 'Fraunces-SemiBold', // Elegant serif for headlines
     displayBold: 'Fraunces-Bold',
   },
   sizes: {
@@ -190,7 +189,7 @@ export const typography = {
   },
 };
 
-// Spacing (base unit: 4px)
+// Spacing (base unit: 4px) - unchanged
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -201,41 +200,41 @@ export const spacing = {
   '3xl': 64,
 } as const;
 
-// Border Radius
+// Border Radius - reduced for sharper feel
 export const borderRadius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 20,
   full: 9999,
 } as const;
 
-// Shadows
+// Shadows - softer, flatter
 export const shadows = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.03,
     shadowRadius: 2,
     elevation: 1,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 6,
   },
 } as const;
 
-// Animation
+// Animation - unchanged
 export const animation = {
   timing: {
     quick: 150,
@@ -247,7 +246,7 @@ export const animation = {
   },
 } as const;
 
-// Touch targets
+// Touch targets - unchanged
 export const touchTargets = {
   minimum: 44,
   recommended: 48,

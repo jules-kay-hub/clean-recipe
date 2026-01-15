@@ -16,6 +16,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
+import { Sunrise, Sun, Moon } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { RootStackParamList, TabParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
@@ -40,10 +41,16 @@ interface MealPlannerScreenProps {
 
 type MealSlot = 'breakfast' | 'lunch' | 'dinner';
 
-const MEAL_SLOTS: { key: MealSlot; label: string; icon: string }[] = [
-  { key: 'breakfast', label: 'Breakfast', icon: '🌅' },
-  { key: 'lunch', label: 'Lunch', icon: '☀️' },
-  { key: 'dinner', label: 'Dinner', icon: '🌙' },
+const MEAL_SLOT_ICONS: Record<MealSlot, React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
+  breakfast: Sunrise,
+  lunch: Sun,
+  dinner: Moon,
+};
+
+const MEAL_SLOTS: { key: MealSlot; label: string }[] = [
+  { key: 'breakfast', label: 'Breakfast' },
+  { key: 'lunch', label: 'Lunch' },
+  { key: 'dinner', label: 'Dinner' },
 ];
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -252,7 +259,11 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
                 onPress={() => meal ? handleMealPress(meal.recipeId) : handleAddMeal(slot.key)}
               >
                 <View style={styles.mealSlotHeader}>
-                  <Text style={styles.mealIcon}>{slot.icon}</Text>
+                  {React.createElement(MEAL_SLOT_ICONS[slot.key], {
+                    size: 16,
+                    color: colors.textSecondary,
+                    strokeWidth: 1.5,
+                  })}
                   <Text style={[styles.mealSlotLabel, { color: colors.textSecondary }]}>
                     {slot.label}
                   </Text>
@@ -312,7 +323,6 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
             onPress={handleGenerateShoppingList}
             variant="accent"
             fullWidth
-            icon={<Text>🛒</Text>}
           >
             Generate Shopping List
           </Button>
@@ -399,9 +409,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.sm,
-  },
-  mealIcon: {
-    fontSize: 20,
   },
   mealSlotLabel: {
     fontFamily: typography.fonts.sansMedium,
