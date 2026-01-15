@@ -1,7 +1,7 @@
 {
-  "name": "clean-recipe",
+  "name": "julienned",
   "version": "1.0.0",
-  "description": "CleanRecipe - Ad-free recipe extraction app",
+  "description": "Julienned - Just the recipe. Beautifully.",
   "main": "index.js",
   "private": true,
   "scripts": {
@@ -17,19 +17,25 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/inter": "^0.4.2",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
     "convex": "^1.17.0",
     "expo": "^54.0.31",
+    "expo-app-loading": "^2.1.1",
     "expo-font": "~14.0.10",
+    "expo-haptics": "~15.0.8",
     "expo-linking": "~8.0.11",
     "expo-status-bar": "~3.0.9",
+    "lucide-react-native": "^0.562.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-native": "^0.81.5",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "^15.15.1",
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {

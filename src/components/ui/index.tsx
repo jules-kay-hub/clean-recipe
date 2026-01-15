@@ -1,5 +1,5 @@
 // src/components/ui/index.tsx
-// Rogue Recipe UI Component Library
+// Julienned UI Component Library
 
 import React, { ReactNode, useState, useEffect } from 'react';
 import {
@@ -131,11 +131,11 @@ export function Button({
   const getBackgroundColor = () => {
     if (disabled) return colors.border;
     switch (variant) {
-      case 'primary': return colors.primary;
-      case 'accent': return colors.accent; // Warm rust for main CTAs
+      case 'primary': return colors.buttonPrimary;
+      case 'accent': return colors.buttonPrimary; // Unified forest green for all CTAs
       case 'secondary': return 'transparent';
       case 'ghost': return 'transparent';
-      default: return colors.primary;
+      default: return colors.buttonPrimary;
     }
   };
 

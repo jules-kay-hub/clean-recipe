@@ -8,7 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BookOpen, Calendar, ShoppingCart, Settings } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
-import { typography, spacing } from '../styles/theme';
+import { typography, spacing, borderRadius } from '../styles/theme';
 
 // Screens
 import { HomeScreen } from '../screens/HomeScreen';
@@ -61,26 +61,29 @@ interface TabIconProps {
 
 function TabIcon({ focused, Icon, label }: TabIconProps) {
   const colors = useColors();
-  const color = focused ? colors.tabBarActive : colors.tabBarInactive;
+  // Subtle Tinted Background style
+  // Active: primary color icon/text with soft tinted pill background
+  // Inactive: muted gray, no background
+  // Using primary (forest green) for consistency with buttons and filters
+  const iconTextColor = focused ? colors.primary : colors.tabBarInactive;
+  const bgColor = focused ? `${colors.primary}26` : 'transparent';
 
   return (
-    <View style={styles.tabIcon}>
-      <Icon size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
+    <View
+      style={[
+        styles.tabIcon,
+        { backgroundColor: bgColor },
+      ]}
+    >
+      <Icon size={22} color={iconTextColor} strokeWidth={focused ? 2 : 1.5} />
       <Text
         style={[
           styles.tabLabel,
-          { color },
+          { color: iconTextColor },
         ]}
       >
         {label}
       </Text>
-      {/* Active indicator pill */}
-      <View
-        style={[
-          styles.activeIndicator,
-          { backgroundColor: focused ? colors.accent : 'transparent' },
-        ]}
-      />
     </View>
   );
 }
@@ -219,16 +222,14 @@ const styles = StyleSheet.create({
   tabIcon: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    minWidth: 64,
   },
   tabLabel: {
     fontFamily: typography.fonts.sansMedium,
-    fontSize: 10,
-  },
-  activeIndicator: {
-    width: 20,
-    height: 3,
-    borderRadius: 1.5,
-    marginTop: 4,
+    fontSize: 11,
   },
 });

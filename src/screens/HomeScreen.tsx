@@ -26,10 +26,63 @@ import { Doc, Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, typography, borderRadius } from '../styles/theme';
+import { timing, easing } from '../utils/animations';
 import { ScreenTitle, Caption, EmptyState, Spinner } from '../components/ui';
 import { URLInput } from '../components/URLInput';
 import { RecipeCard } from '../components/RecipeCard';
 import { ConfirmModal } from '../components/ConfirmModal';
+
+// Animated grid item for stagger effect
+interface AnimatedGridItemProps {
+  index: number;
+  children: React.ReactNode;
+  triggerKey: string; // Changes when we need to re-animate
+}
+
+function AnimatedGridItem({ index, children, triggerKey }: AnimatedGridItemProps) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    // Reset values
+    opacity.setValue(0);
+    translateY.setValue(20);
+
+    // Staggered animation delay based on index
+    const delay = index * timing.stagger;
+
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: timing.standard,
+        delay,
+        easing: easing.default,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: timing.standard,
+        delay,
+        easing: easing.easeOut,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [triggerKey]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.gridItem,
+        {
+          opacity,
+          transform: [{ translateY }],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
+}
 
 interface HomeScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
@@ -479,8 +532,12 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         ) : (
           <View style={styles.grid}>
-            {displayedRecipes.map((recipe: Doc<"recipes">) => (
-              <View key={recipe._id} style={styles.gridItem}>
+            {displayedRecipes.map((recipe: Doc<"recipes">, index: number) => (
+              <AnimatedGridItem
+                key={recipe._id}
+                index={index}
+                triggerKey={`${sortOption}-${timeFilter}-${searchQuery}`}
+              >
                 <RecipeCard
                   id={recipe._id}
                   title={recipe.title}
@@ -491,7 +548,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                   onPress={handleRecipePress}
                   onLongPress={handleDeleteRecipe}
                 />
-              </View>
+              </AnimatedGridItem>
             ))}
           </View>
         )}

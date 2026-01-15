@@ -1,16 +1,22 @@
 // src/components/ConfirmModal.tsx
-// Cross-platform confirmation modal
+// Cross-platform confirmation modal with animations
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   Modal,
   Pressable,
   StyleSheet,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { useColors } from '../hooks/useTheme';
+import { useHaptics } from '../hooks/useHaptics';
 import { typography, spacing, borderRadius } from '../styles/theme';
+import { timing, easing } from '../utils/animations';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -39,16 +45,82 @@ export function ConfirmModal({
   onSecondary,
 }: ConfirmModalProps) {
   const colors = useColors();
+  const haptics = useHaptics();
+
+  // Animation values
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const modalTranslateY = useRef(new Animated.Value(100)).current;
+  const modalScale = useRef(new Animated.Value(0.9)).current;
+
+  // Animate in when visible
+  useEffect(() => {
+    if (visible) {
+      // Reset values
+      overlayOpacity.setValue(0);
+      modalTranslateY.setValue(100);
+      modalScale.setValue(0.9);
+
+      // Play haptic on open
+      haptics.medium();
+
+      // Animate in
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: timing.standard,
+          easing: easing.default,
+          useNativeDriver: true,
+        }),
+        Animated.timing(modalTranslateY, {
+          toValue: 0,
+          duration: timing.page,
+          easing: easing.easeOut,
+          useNativeDriver: true,
+        }),
+        Animated.timing(modalScale, {
+          toValue: 1,
+          duration: timing.page,
+          easing: easing.easeOut,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  const handleConfirm = () => {
+    if (destructive) {
+      haptics.error();
+    } else {
+      haptics.success();
+    }
+    onConfirm();
+  };
+
+  const handleCancel = () => {
+    haptics.light();
+    onCancel();
+  };
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onCancel}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
+      <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
+        <Animated.View
+          style={[
+            styles.container,
+            {
+              backgroundColor: colors.cardBackground,
+              transform: [
+                { translateY: modalTranslateY },
+                { scale: modalScale },
+              ],
+            },
+          ]}
+        >
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.message, { color: colors.textSecondary }]}>
             {message}
@@ -56,7 +128,7 @@ export function ConfirmModal({
 
           <View style={styles.buttons}>
             <Pressable
-              onPress={onCancel}
+              onPress={handleCancel}
               style={({ pressed }) => [
                 styles.button,
                 styles.cancelButton,
@@ -64,6 +136,7 @@ export function ConfirmModal({
                   backgroundColor: colors.surface,
                   borderColor: colors.border,
                   opacity: pressed ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
                 },
               ]}
             >
@@ -73,13 +146,14 @@ export function ConfirmModal({
             </Pressable>
 
             <Pressable
-              onPress={onConfirm}
+              onPress={handleConfirm}
               style={({ pressed }) => [
                 styles.button,
                 styles.confirmButton,
                 {
-                  backgroundColor: destructive ? '#DC3545' : colors.accent,
+                  backgroundColor: destructive ? colors.error : colors.accent,
                   opacity: pressed ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
                 },
               ]}
             >
@@ -92,12 +166,16 @@ export function ConfirmModal({
           {/* Optional secondary action */}
           {secondaryText && onSecondary && (
             <Pressable
-              onPress={onSecondary}
+              onPress={() => {
+                haptics.light();
+                onSecondary();
+              }}
               style={({ pressed }) => [
                 styles.secondaryButton,
                 {
                   borderColor: colors.border,
                   opacity: pressed ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
                 },
               ]}
             >
@@ -106,8 +184,8 @@ export function ConfirmModal({
               </Text>
             </Pressable>
           )}
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }

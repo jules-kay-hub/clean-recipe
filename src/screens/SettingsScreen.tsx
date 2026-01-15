@@ -181,14 +181,14 @@ export function SettingsScreen() {
         <View style={styles.settingsGroup}>
           <SettingRow
             Icon={Info}
-            title="Rogue Recipe"
+            title="Julienned"
             subtitle="Version 1.0.0"
           />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <SettingRow
             Icon={MessageSquare}
             title="Feedback"
-            onPress={() => Linking.openURL('mailto:feedback@roguerecipe.app')}
+            onPress={() => Linking.openURL('mailto:feedback@julienned.app')}
             showChevron
           />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -203,7 +203,7 @@ export function SettingsScreen() {
         {/* Tagline */}
         <View style={styles.footer}>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
-            Just the recipe.
+            Just the recipe. Beautifully.
           </Text>
         </View>
       </ScrollView>

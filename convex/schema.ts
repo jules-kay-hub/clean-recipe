@@ -1,5 +1,5 @@
 // convex/schema.ts
-// CleanRecipe Database Schema with Cache-First Architecture
+// Julienned Database Schema with Cache-First Architecture
 
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";

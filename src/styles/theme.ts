@@ -1,22 +1,22 @@
 // src/styles/theme.ts
-// Rogue Recipe Design System
+// Julienned Design System — Premium Cookbook Aesthetic
 
 export const colors = {
-  // Primary Palette - Deep Navy
-  navy: '#0D1B2A',
-  navyLight: '#4A6FA5',
-  navyMedium: '#3A5A8A', // Darker variant for pressed states
+  // Primary Palette - Forest Green
+  forest: '#2D4A3E',
+  forestLight: '#4A7A6A',
+  forestMedium: '#3A6A5A', // Pressed state variant
 
-  // Accent Palette - Warm Rust (Von Restorff Effect)
-  rust: '#B86A4A',
-  rustLight: '#D4A08A',
+  // Accent Palette - Copper (Premium kitchenware aesthetic)
+  copper: '#B87333',
+  copperLight: '#D4A574',
 
   // Neutrals - Light Mode
-  cream: '#FAF8F5', // Warm background (Aesthetic-Usability Effect)
+  linen: '#F5F0EB', // Warm natural background
   white: '#FFFFFF',
   ink: '#1A1A1A',
   stone: '#6B6B6B',
-  border: '#E8E4E1',
+  border: '#E5E0DB',
 
   // Neutrals - Dark Mode
   darkBackground: '#121212',
@@ -42,12 +42,12 @@ export const colors = {
 
 export const lightTheme = {
   colors: {
-    primary: colors.navy,
-    primaryDark: colors.navy,
-    accent: colors.rust, // Warm accent for CTAs
-    accentLight: colors.rustLight,
+    primary: colors.forest,
+    primaryDark: colors.forest,
+    accent: colors.copper, // Warm copper accent for CTAs
+    accentLight: colors.copperLight,
 
-    background: colors.cream, // Warm cream background
+    background: colors.linen, // Warm linen background
     surface: colors.white,
     surfaceElevated: colors.white,
 
@@ -57,25 +57,25 @@ export const lightTheme = {
     textMuted: colors.stone,
 
     border: colors.border,
-    borderFocus: colors.navy,
+    borderFocus: colors.forestLight,
 
     success: colors.success,
     warning: colors.warning,
     error: colors.error,
     info: colors.info,
 
-    tabBarActive: colors.navy,
+    tabBarActive: colors.forest,
     tabBarInactive: colors.stone,
     tabBarBackground: colors.white,
 
     cardBackground: colors.white,
-    inputBackground: colors.cream,
+    inputBackground: colors.linen,
 
     // CTA Button - prominent and accessible
-    buttonPrimary: colors.navyLight,
-    buttonPrimaryPressed: colors.navyMedium,
+    buttonPrimary: colors.forestLight,
+    buttonPrimaryPressed: colors.forestMedium,
 
-    checkboxActive: colors.navy,
+    checkboxActive: colors.forest,
     checkboxInactive: colors.border,
 
     overlay: colors.overlay,
@@ -85,10 +85,10 @@ export const lightTheme = {
 
 export const darkTheme: Theme = {
   colors: {
-    primary: colors.navyLight,
-    primaryDark: colors.navy,
-    accent: colors.rustLight, // Warm accent works on dark
-    accentLight: colors.rust,
+    primary: colors.forestLight,
+    primaryDark: colors.forest,
+    accent: colors.copperLight, // Warm copper works on dark
+    accentLight: colors.copper,
 
     background: colors.darkBackground,
     surface: colors.darkSurface,
@@ -100,14 +100,14 @@ export const darkTheme: Theme = {
     textMuted: colors.warmGray,
 
     border: colors.darkBorder,
-    borderFocus: colors.navyLight,
+    borderFocus: colors.forestLight,
 
     success: colors.successLight,
     warning: colors.warningLight,
     error: colors.errorLight,
     info: colors.infoLight,
 
-    tabBarActive: colors.navyLight,
+    tabBarActive: colors.forestLight,
     tabBarInactive: colors.warmGray,
     tabBarBackground: colors.darkSurface,
 
@@ -115,10 +115,10 @@ export const darkTheme: Theme = {
     inputBackground: colors.darkBorder,
 
     // CTA Button - prominent and accessible
-    buttonPrimary: colors.navyLight,
-    buttonPrimaryPressed: colors.navyMedium,
+    buttonPrimary: colors.forestLight,
+    buttonPrimaryPressed: colors.forestMedium,
 
-    checkboxActive: colors.navyLight,
+    checkboxActive: colors.forestLight,
     checkboxInactive: colors.darkBorder,
 
     overlay: colors.overlayLight,

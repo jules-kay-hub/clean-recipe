@@ -1,5 +1,5 @@
 // src/hooks/useTheme.tsx
-// Theme context and hook for CleanRecipe
+// Theme context and hook for Julienned
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
