@@ -3,11 +3,11 @@
 
 import React from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
-import { UtensilsCrossed, Clock, Users, Moon } from 'lucide-react-native';
+import { UtensilsCrossed, Clock, Users, Moon, Timer } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows } from '../styles/theme';
 import { decodeHtmlEntities } from '../utils/textUtils';
-import { formatDuration, detectOvernightChill } from '../utils/dateUtils';
+import { formatDuration, detectOvernightChill, extractPassiveTime } from '../utils/dateUtils';
 
 interface RecipeCardProps {
   id: string;
@@ -15,6 +15,7 @@ interface RecipeCardProps {
   imageUrl?: string;
   prepTime?: number;
   cookTime?: number;
+  inactiveTime?: number;
   servings?: number;
   instructions?: string[];
   onPress: (id: string) => void;
@@ -27,15 +28,27 @@ export function RecipeCard({
   imageUrl,
   prepTime,
   cookTime,
+  inactiveTime,
   servings,
   instructions,
   onPress,
   onLongPress,
 }: RecipeCardProps) {
   const colors = useColors();
-  const totalTime = (prepTime || 0) + (cookTime || 0);
-  const formattedTime = formatDuration(totalTime);
-  const isOvernightChill = detectOvernightChill(instructions, prepTime, cookTime);
+
+  // Calculate times
+  const activeTime = (prepTime || 0) + (cookTime || 0);
+  // Use stored inactiveTime or extract from instructions as fallback
+  const passiveTime = inactiveTime || extractPassiveTime(instructions);
+  const totalTime = activeTime + passiveTime;
+
+  // Format times for display
+  const formattedActiveTime = formatDuration(activeTime);
+  const formattedTotalTime = formatDuration(totalTime);
+  const hasPassiveTime = passiveTime > 0;
+
+  // Detect overnight requirement
+  const isOvernightChill = passiveTime >= 480 || detectOvernightChill(instructions, prepTime, cookTime);
 
   return (
     <Pressable
@@ -89,15 +102,23 @@ export function RecipeCard({
 
         {/* Meta Info */}
         <View style={styles.metaContainer}>
-          {formattedTime && (
+          {formattedActiveTime && (
             <View style={styles.metaItem}>
               <Clock size={14} color={colors.textSecondary} strokeWidth={1.5} />
               <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {formattedTime}
+                {hasPassiveTime ? formattedTotalTime : formattedActiveTime}
               </Text>
             </View>
           )}
-          {servings && (
+          {hasPassiveTime && formattedActiveTime && (
+            <View style={styles.metaItem}>
+              <Timer size={14} color={colors.accent} strokeWidth={1.5} />
+              <Text style={[styles.metaText, { color: colors.accent }]}>
+                {formattedActiveTime}
+              </Text>
+            </View>
+          )}
+          {servings && !hasPassiveTime && (
             <View style={styles.metaItem}>
               <Users size={14} color={colors.textSecondary} strokeWidth={1.5} />
               <Text style={[styles.metaText, { color: colors.textSecondary }]}>

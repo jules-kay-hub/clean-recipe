@@ -14,13 +14,13 @@ import {
 } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChevronLeft, Clock, ShoppingCart } from 'lucide-react-native';
+import { ChevronLeft, Clock, ShoppingCart, Timer, Moon } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, typography, shadows } from '../styles/theme';
-import { formatRelativeTime } from '../utils/dateUtils';
+import { formatRelativeTime, formatDuration, extractPassiveTime } from '../utils/dateUtils';
 import {
   HeroTitle,
   SectionHeader,
@@ -135,7 +135,13 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
     );
   }
 
-  const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
+  // Calculate times
+  const activeTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
+  // Use stored inactiveTime or extract from instructions as fallback
+  const passiveTime = recipe.inactiveTime || extractPassiveTime(recipe.instructions);
+  const totalTime = activeTime + passiveTime;
+  const hasPassiveTime = passiveTime > 0;
+  const isOvernight = passiveTime >= 480;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -173,20 +179,38 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
 
           {/* Meta Info */}
           <View style={styles.metaRow}>
+            {/* Total Time (includes passive time if any) */}
             {totalTime > 0 && (
               <View style={styles.metaItem}>
                 <Clock size={16} color={colors.textSecondary} strokeWidth={1.5} />
-                <Caption>{totalTime} min</Caption>
+                <Caption>{formatDuration(totalTime)}</Caption>
               </View>
             )}
-            {recipe.prepTime && (
+            {/* Show active time separately if there's passive time */}
+            {hasPassiveTime && activeTime > 0 && (
+              <View style={styles.metaItem}>
+                <Timer size={16} color={colors.accent} strokeWidth={1.5} />
+                <Caption style={{ color: colors.accent }}>
+                  Active: {formatDuration(activeTime)}
+                </Caption>
+              </View>
+            )}
+            {/* Show Prep/Cook breakdown only if no passive time */}
+            {!hasPassiveTime && recipe.prepTime && (
               <View style={styles.metaItem}>
                 <Caption>Prep: {recipe.prepTime}m</Caption>
               </View>
             )}
-            {recipe.cookTime && (
+            {!hasPassiveTime && recipe.cookTime && (
               <View style={styles.metaItem}>
                 <Caption>Cook: {recipe.cookTime}m</Caption>
+              </View>
+            )}
+            {/* Overnight indicator */}
+            {isOvernight && (
+              <View style={styles.metaItem}>
+                <Moon size={16} color={colors.primary} strokeWidth={1.5} />
+                <Caption style={{ color: colors.primary }}>Overnight</Caption>
               </View>
             )}
           </View>

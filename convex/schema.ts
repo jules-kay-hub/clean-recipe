@@ -31,9 +31,10 @@ export default defineSchema({
     ),
     instructions: v.array(v.string()),
     servings: v.optional(v.number()),
-    prepTime: v.optional(v.number()), // Minutes
-    cookTime: v.optional(v.number()), // Minutes
-    totalTime: v.optional(v.number()), // Minutes
+    prepTime: v.optional(v.number()), // Minutes (active hands-on time)
+    cookTime: v.optional(v.number()), // Minutes (active cooking time)
+    totalTime: v.optional(v.number()), // Minutes (from source, may exclude passive time)
+    inactiveTime: v.optional(v.number()), // Minutes (passive time: rising, chilling, marinating)
 
     // Media
     imageUrl: v.optional(v.string()),

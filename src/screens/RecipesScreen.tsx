@@ -406,6 +406,7 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
                   imageUrl={recipe.imageUrl}
                   prepTime={recipe.prepTime}
                   cookTime={recipe.cookTime}
+                  inactiveTime={recipe.inactiveTime}
                   servings={recipe.servings}
                   instructions={recipe.instructions}
                   onPress={handleRecipePress}

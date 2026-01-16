@@ -288,6 +288,7 @@ export const saveRecipe = internalMutation({
     prepTime: v.optional(v.number()),
     cookTime: v.optional(v.number()),
     totalTime: v.optional(v.number()),
+    inactiveTime: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     nutrition: v.optional(

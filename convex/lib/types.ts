@@ -47,6 +47,7 @@ export interface Recipe {
   prepTime?: number;
   cookTime?: number;
   totalTime?: number;
+  inactiveTime?: number; // Passive time: rising, chilling, marinating
   imageUrl?: string;
   thumbnailUrl?: string;
   nutrition?: Nutrition;

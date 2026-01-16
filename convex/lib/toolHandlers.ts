@@ -245,6 +245,141 @@ function flattenInstructions(items: unknown[]): string[] {
   return results.filter(Boolean);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PASSIVE TIME EXTRACTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Extract passive/inactive time from recipe instructions
+ * Looks for patterns like "let rise for 2 hours", "chill for 30 minutes", etc.
+ * Returns total passive time in minutes
+ */
+function extractPassiveTimeFromInstructions(instructions: string[]): number {
+  if (!instructions || instructions.length === 0) return 0;
+
+  const text = instructions.join(" ").toLowerCase();
+  let totalMinutes = 0;
+
+  // Patterns for passive time (action + duration)
+  const passivePatterns = [
+    // Rising/proofing (bread, dough)
+    /(?:let\s+)?(?:rise|proof|ferment)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    /(?:allow|leave)\s+(?:to\s+)?(?:rise|proof)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Resting
+    /(?:let\s+)?rest\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    /(?:let\s+)?(?:it\s+)?sit\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    /(?:let\s+)?stand\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Chilling/refrigerating
+    /(?:chill|refrigerate|cool)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    /(?:in\s+(?:the\s+)?(?:fridge|refrigerator))\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Marinating
+    /marinate\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Soaking
+    /soak\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Freezing
+    /freeze\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Setting (for desserts)
+    /(?:let\s+)?set\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Cooling
+    /(?:let\s+)?cool\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+
+    // Generic waiting
+    /(?:wait|leave)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+  ];
+
+  // Track matched spans to avoid double-counting
+  const matchedSpans: Array<{ start: number; end: number }> = [];
+
+  for (const pattern of passivePatterns) {
+    let match;
+    pattern.lastIndex = 0;
+
+    while ((match = pattern.exec(text)) !== null) {
+      const matchStart = match.index;
+      const matchEnd = match.index + match[0].length;
+
+      // Check for overlap with previous matches
+      const overlaps = matchedSpans.some(
+        (span) =>
+          (matchStart >= span.start && matchStart < span.end) ||
+          (matchEnd > span.start && matchEnd <= span.end)
+      );
+
+      if (!overlaps) {
+        matchedSpans.push({ start: matchStart, end: matchEnd });
+        const minutes = parsePassiveTimeToMinutes(match[1], match[2]);
+        totalMinutes += minutes;
+      }
+    }
+  }
+
+  // Special case: "overnight" without specific hours (assume 8 hours)
+  if (text.includes("overnight") && totalMinutes < 480) {
+    const overnightPatterns = [
+      /(?:chill|refrigerate|rest|rise|proof|marinate|soak|sit|stand|ferment)\s+overnight/i,
+      /overnight\s+(?:in\s+(?:the\s+)?(?:fridge|refrigerator)|chilling|rest)/i,
+      /leave\s+overnight/i,
+      /let\s+(?:it\s+)?(?:sit|rest|rise)\s+overnight/i,
+    ];
+
+    for (const pattern of overnightPatterns) {
+      if (pattern.test(text) && totalMinutes < 480) {
+        totalMinutes = Math.max(totalMinutes, 480); // 8 hours minimum
+        break;
+      }
+    }
+  }
+
+  // Special case: long hours mentioned in context of fridge/refrigerator
+  const longHoursMatch = text.match(
+    /(\d+)\s*hours?\s*(?:\(|in\s+(?:the\s+)?(?:fridge|refrigerator))/gi
+  );
+  if (longHoursMatch) {
+    for (const match of longHoursMatch) {
+      const hoursMatch = match.match(/\d+/);
+      const hours = hoursMatch ? parseInt(hoursMatch[0]) : 0;
+      if (hours >= 8) {
+        totalMinutes = Math.max(totalMinutes, hours * 60);
+      }
+    }
+  }
+
+  return totalMinutes;
+}
+
+/**
+ * Parse time string to minutes
+ * Handles ranges like "1 to 2 hours" by taking the minimum
+ */
+function parsePassiveTimeToMinutes(timeValue: string, unit: string): number {
+  const rangeMatch = timeValue.match(/(\d+)\s*(?:to|-)\s*(\d+)/);
+  let value: number;
+
+  if (rangeMatch) {
+    value = Math.min(parseInt(rangeMatch[1]), parseInt(rangeMatch[2]));
+  } else {
+    value = parseInt(timeValue);
+  }
+
+  const unitLower = unit.toLowerCase();
+  if (
+    unitLower.startsWith("hour") ||
+    unitLower === "hrs" ||
+    unitLower === "hr"
+  ) {
+    return value * 60;
+  }
+
+  return value; // Default to minutes
+}
+
 function parseSchemaRecipe(schema: SchemaRecipe): Recipe {
   // Parse instructions - handles various schema.org formats
   let instructions: string[] = [];
@@ -298,15 +433,22 @@ function parseSchemaRecipe(schema: SchemaRecipe): Recipe {
     return undefined;
   };
 
+  // Decode instructions for return and passive time extraction
+  const decodedInstructions = instructions.filter(Boolean).map(decodeHtmlEntities);
+
+  // Extract passive/inactive time from instructions
+  const inactiveTime = extractPassiveTimeFromInstructions(decodedInstructions);
+
   return {
     title: decodeHtmlEntities(schema.name || "Untitled Recipe"),
     description: schema.description ? decodeHtmlEntities(schema.description) : undefined,
     ingredients,
-    instructions: instructions.filter(Boolean).map(decodeHtmlEntities),
+    instructions: decodedInstructions,
     servings: parseServings(schema.recipeYield),
     prepTime: parseTime(schema.prepTime),
     cookTime: parseTime(schema.cookTime),
     totalTime: parseTime(schema.totalTime),
+    inactiveTime: inactiveTime > 0 ? inactiveTime : undefined,
     imageUrl: getImageUrl(schema.image),
     nutrition: schema.nutrition
       ? {
@@ -627,6 +769,7 @@ export async function handleSaveRecipe(
     prepTime: recipe.prepTime,
     cookTime: recipe.cookTime,
     totalTime: recipe.totalTime,
+    inactiveTime: recipe.inactiveTime,
     imageUrl: recipe.imageUrl,
     thumbnailUrl: recipe.thumbnailUrl,
     nutrition: recipe.nutrition,
