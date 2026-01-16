@@ -19,6 +19,7 @@ import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { spacing, typography, borderRadius } from '../styles/theme';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react-native';
 import { Spinner } from '../components/ui';
 import { decodeHtmlEntities } from '../utils/textUtils';
 
@@ -149,14 +150,11 @@ export function CookingModeScreen({ route, navigation }: CookingModeScreenProps)
             },
           ]}
         >
-          <Text
-            style={[
-              styles.navButtonIcon,
-              { color: isFirstStep ? colors.textSecondary : colors.text },
-            ]}
-          >
-            ←
-          </Text>
+          <ChevronLeft
+            size={20}
+            color={isFirstStep ? colors.textSecondary : colors.text}
+            strokeWidth={2}
+          />
           <Text
             style={[
               styles.navButtonText,
@@ -183,14 +181,10 @@ export function CookingModeScreen({ route, navigation }: CookingModeScreenProps)
             {isLastStep ? 'Done' : 'Next'}
           </Text>
           {!isLastStep && (
-            <Text style={[styles.navButtonIcon, { color: colors.textInverse }]}>
-              →
-            </Text>
+            <ChevronRight size={20} color={colors.textInverse} strokeWidth={2} />
           )}
           {isLastStep && (
-            <Text style={[styles.navButtonIcon, { color: colors.textInverse }]}>
-              ✓
-            </Text>
+            <Check size={20} color={colors.textInverse} strokeWidth={2} />
           )}
         </Pressable>
       </View>
@@ -292,10 +286,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   nextButton: {},
-  navButtonIcon: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
   navButtonText: {
     fontFamily: typography.fonts.sansBold,
     fontSize: typography.sizes.body,

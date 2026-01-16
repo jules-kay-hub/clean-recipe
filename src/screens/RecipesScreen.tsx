@@ -1,5 +1,5 @@
-// src/screens/HomeScreen.tsx
-// Main recipe library screen
+// src/screens/RecipesScreen.tsx
+// Recipe library screen with search and filters
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
@@ -15,23 +15,22 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { CheckCircle, Search, X, ChevronDown } from 'lucide-react-native';
+import { Search, X, ChevronDown } from 'lucide-react-native';
 
 // Web-specific styles to remove browser focus outlines
 const webInputStyle = Platform.OS === 'web' ? { outlineStyle: 'none' } : {};
-import { useQuery, useAction, useMutation } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '../../convex/_generated/api';
 import { Doc, Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
-import { spacing, typography, borderRadius } from '../styles/theme';
+import { spacing, typography, borderRadius, shadows } from '../styles/theme';
 import { timing, easing } from '../utils/animations';
 import { ScreenTitle, Caption, EmptyState, Spinner } from '../components/ui';
-import { URLInput } from '../components/URLInput';
 import { RecipeCard } from '../components/RecipeCard';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { JuliennedIcon } from '../components/JuliennedIcon';
+import { useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 
 // Animated grid item for stagger effect
 interface AnimatedGridItemProps {
@@ -85,41 +84,29 @@ function AnimatedGridItem({ index, children, triggerKey }: AnimatedGridItemProps
   );
 }
 
-interface HomeScreenProps {
+interface RecipesScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
 }
 
-export function HomeScreen({ navigation }: HomeScreenProps) {
+export function RecipesScreen({ navigation }: RecipesScreenProps) {
   const colors = useColors();
   const { isDark } = useTheme();
+  const { onScroll, resetVisibility } = useOptionalTabBarVisibility();
   const [refreshing, setRefreshing] = useState(false);
-  const [extractError, setExtractError] = useState<string | undefined>();
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
-  const successOpacity = useRef(new Animated.Value(0)).current;
-  const successScale = useRef(new Animated.Value(0.8)).current;
   const [deleteConfirm, setDeleteConfirm] = useState<{
     visible: boolean;
     recipeId: string | null;
     recipeName: string;
   }>({ visible: false, recipeId: null, recipeName: '' });
-  const [duplicateConfirm, setDuplicateConfirm] = useState<{
-    visible: boolean;
-    url: string;
-    existingRecipe: { _id: string; title: string } | null;
-  }>({ visible: false, url: '', existingRecipe: null });
 
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchExpanded, setSearchExpanded] = useState(false);
   const [sortOption, setSortOption] = useState<'recent' | 'oldest' | 'az' | 'za'>('recent');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [timeFilter, setTimeFilter] = useState<'all' | 'quick'>('all');
-  const [urlClearTrigger, setUrlClearTrigger] = useState(0);
 
   // Fetch recipes and get/create demo user
-  const extractRecipe = useAction(api.extraction.extractRecipe);
   const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
   const deleteRecipe = useMutation(api.recipes.remove);
   // Pass userId to list query so it works without auth (demo mode)
@@ -202,95 +189,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
     setRefreshing(false);
   }, []);
 
-  // Normalize URL for comparison
-  const normalizeUrlForCompare = (url: string): string => {
-    try {
-      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-      parsed.hostname = parsed.hostname.replace(/^www\./, '');
-      return parsed.hostname + parsed.pathname.replace(/\/$/, '');
-    } catch {
-      return url.toLowerCase();
-    }
-  };
-
-  // Check if URL already exists in recipes
-  const findExistingRecipe = (url: string) => {
-    const normalizedInput = normalizeUrlForCompare(url);
-    return recipes.find((recipe) => {
-      if (!recipe.sourceUrl) return false;
-      const normalizedExisting = normalizeUrlForCompare(recipe.sourceUrl);
-      return normalizedInput === normalizedExisting;
-    });
-  };
-
-  const handleExtract = async (url: string, skipDuplicateCheck = false) => {
-    if (!userId) {
-      setExtractError('User not initialized. Please try again.');
-      return;
-    }
-
-    // Check for duplicate unless skipped
-    if (!skipDuplicateCheck) {
-      const existing = findExistingRecipe(url);
-      if (existing) {
-        setDuplicateConfirm({
-          visible: true,
-          url,
-          existingRecipe: { _id: existing._id, title: existing.title },
-        });
-        return;
-      }
-    }
-
-    setExtractError(undefined);
-    setIsExtracting(true);
-
-    try {
-      const result = await extractRecipe({
-        url,
-        userId,
-      });
-
-      if (result.success && result.recipe) {
-        // Clear the URL input on success
-        setUrlClearTrigger(prev => prev + 1);
-
-        // Show success feedback
-        setShowSuccess(true);
-        Animated.parallel([
-          Animated.timing(successOpacity, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.spring(successScale, {
-            toValue: 1,
-            friction: 8,
-            tension: 100,
-            useNativeDriver: true,
-          }),
-        ]).start();
-
-        // Navigate after brief delay
-        const recipeId = result.recipe._id;
-        setTimeout(() => {
-          setShowSuccess(false);
-          successOpacity.setValue(0);
-          successScale.setValue(0.8);
-          navigation.navigate('RecipeDetail', { recipeId });
-        }, 1200);
-      } else {
-        setExtractError(result.error?.message || 'Failed to extract recipe');
-      }
-    } catch (error) {
-      setExtractError(
-        error instanceof Error ? error.message : 'Failed to extract recipe'
-      );
-    } finally {
-      setIsExtracting(false);
-    }
-  };
-
   const handleRecipePress = (recipeId: string) => {
     navigation.navigate('RecipeDetail', { recipeId });
   };
@@ -328,25 +226,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
     setDeleteConfirm({ visible: false, recipeId: null, recipeName: '' });
   };
 
-  // Duplicate confirmation handlers
-  const confirmDuplicateExtract = () => {
-    const url = duplicateConfirm.url;
-    setDuplicateConfirm({ visible: false, url: '', existingRecipe: null });
-    handleExtract(url, true); // Skip duplicate check on retry
-  };
-
-  const viewExistingRecipe = () => {
-    const recipeId = duplicateConfirm.existingRecipe?._id;
-    setDuplicateConfirm({ visible: false, url: '', existingRecipe: null });
-    if (recipeId) {
-      navigation.navigate('RecipeDetail', { recipeId });
-    }
-  };
-
-  const cancelDuplicateCheck = () => {
-    setDuplicateConfirm({ visible: false, url: '', existingRecipe: null });
-  };
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar
@@ -365,72 +244,46 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           />
         }
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <View style={styles.headerTitleRow}>
-              <JuliennedIcon size={36} />
-              <View>
-                <ScreenTitle>Recipes</ScreenTitle>
-                <Caption>{recipes.length} saved</Caption>
-              </View>
-            </View>
+          <View style={styles.titleRow}>
+            <ScreenTitle>Recipes</ScreenTitle>
+            <Caption>{recipes.length} saved</Caption>
+          </View>
 
-            {/* Expandable Pill Search */}
-            {recipes.length > 0 && (
-              <Pressable
-                onPress={() => !searchExpanded && setSearchExpanded(true)}
-                style={[
-                  styles.searchPill,
-                  searchExpanded && styles.searchPillExpanded,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: searchExpanded ? colors.buttonPrimary : colors.border,
-                  },
-                ]}
-              >
-                <Search
-                  size={18}
-                  color={searchExpanded ? colors.buttonPrimary : colors.textSecondary}
-                  strokeWidth={1.5}
-                />
-                {searchExpanded && (
-                  <>
-                    <TextInput
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      placeholder="Search recipes..."
-                      placeholderTextColor={colors.textMuted}
-                      style={[styles.searchInput, { color: colors.text }, webInputStyle as any]}
-                      autoFocus
-                      onBlur={() => {
-                        if (!searchQuery) setSearchExpanded(false);
-                      }}
-                    />
-                    {searchQuery.length > 0 ? (
-                      <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                        <X size={18} color={colors.textMuted} strokeWidth={1.5} />
-                      </Pressable>
-                    ) : (
-                      <Pressable onPress={() => setSearchExpanded(false)} hitSlop={8}>
-                        <X size={18} color={colors.textMuted} strokeWidth={1.5} />
-                      </Pressable>
-                    )}
-                  </>
-                )}
+          {/* Full-width Pill Search Bar */}
+          <View
+            style={[
+              styles.searchBar,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+              shadows.sm,
+            ]}
+          >
+            <Search
+              size={20}
+              color={colors.textSecondary}
+              strokeWidth={1.5}
+            />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search recipes..."
+              placeholderTextColor={colors.textMuted}
+              style={[styles.searchInput, { color: colors.text }, webInputStyle as any]}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                <X size={18} color={colors.textMuted} strokeWidth={1.5} />
               </Pressable>
             )}
           </View>
         </View>
-
-        {/* URL Input */}
-        <URLInput
-          onExtract={handleExtract}
-          isLoading={isExtracting}
-          error={extractError}
-          clearTrigger={urlClearTrigger}
-        />
 
         {/* Sort & Filter Bar */}
         {recipes.length > 0 && (
@@ -554,6 +407,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                   prepTime={recipe.prepTime}
                   cookTime={recipe.cookTime}
                   servings={recipe.servings}
+                  instructions={recipe.instructions}
                   onPress={handleRecipePress}
                   onLongPress={handleDeleteRecipe}
                 />
@@ -574,49 +428,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         onCancel={cancelDelete}
         destructive
       />
-
-      {/* Duplicate Recipe Modal */}
-      <ConfirmModal
-        visible={duplicateConfirm.visible}
-        title="Recipe Already Saved"
-        message={`You already have "${duplicateConfirm.existingRecipe?.title || 'this recipe'}" in your collection.`}
-        confirmText="Add Anyway"
-        cancelText="Cancel"
-        onConfirm={confirmDuplicateExtract}
-        onCancel={cancelDuplicateCheck}
-        secondaryText="View Existing Recipe"
-        onSecondary={viewExistingRecipe}
-      />
-
-      {/* Success Overlay */}
-      {showSuccess && (
-        <Animated.View
-          style={[
-            styles.successOverlay,
-            {
-              backgroundColor: colors.background,
-              opacity: successOpacity,
-            },
-          ]}
-        >
-          <Animated.View
-            style={[
-              styles.successContent,
-              { transform: [{ scale: successScale }] },
-            ]}
-          >
-            <View style={[styles.successIcon, { backgroundColor: colors.success + '20' }]}>
-              <CheckCircle size={48} color={colors.success} strokeWidth={2} />
-            </View>
-            <Text style={[styles.successTitle, { color: colors.text }]}>
-              Recipe Saved!
-            </Text>
-            <Text style={[styles.successMessage, { color: colors.textSecondary }]}>
-              Opening your recipe...
-            </Text>
-          </Animated.View>
-        </Animated.View>
-      )}
     </SafeAreaView>
   );
 }
@@ -627,34 +438,25 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: 80, // Account for floating tab bar
   },
   header: {
     marginBottom: spacing.lg,
   },
-  headerTop: {
+  titleRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    marginBottom: spacing.md,
   },
-  headerTitleRow: {
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-  },
-  searchPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 40,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    gap: spacing.xs,
-  },
-  searchPillExpanded: {
-    flex: 1,
-    marginLeft: spacing.md,
-    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   searchInput: {
     flex: 1,
@@ -738,35 +540,5 @@ const styles = StyleSheet.create({
     width: '50%',
     paddingHorizontal: spacing.sm / 2,
     marginBottom: spacing.md,
-  },
-  successOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  successContent: {
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  successIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  successTitle: {
-    fontFamily: typography.fonts.display,
-    fontSize: typography.sizes.title,
-    marginBottom: spacing.sm,
-  },
-  successMessage: {
-    fontFamily: typography.fonts.sans,
-    fontSize: typography.sizes.body,
   },
 });

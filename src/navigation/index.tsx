@@ -1,17 +1,21 @@
 // src/navigation/index.tsx
 // Main navigation setup using React Navigation
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, Platform, Animated } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { BookOpen, Calendar, ShoppingCart, Settings } from 'lucide-react-native';
-import { useColors } from '../hooks/useTheme';
+import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { Link, BookOpen, Calendar, ShoppingCart, Settings } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import { useColors, useTheme } from '../hooks/useTheme';
 import { typography, spacing, borderRadius } from '../styles/theme';
+import { TabBarVisibilityProvider, useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 
 // Screens
-import { HomeScreen } from '../screens/HomeScreen';
+import { ExtractScreen } from '../screens/ExtractScreen';
+import { RecipesScreen } from '../screens/RecipesScreen';
 import { RecipeDetailScreen } from '../screens/RecipeDetailScreen';
 import { MealPlannerScreen } from '../screens/MealPlannerScreen';
 import { ShoppingListScreen } from '../screens/ShoppingListScreen';
@@ -37,7 +41,8 @@ export type RootStackParamList = {
 };
 
 export type TabParamList = {
-  Home: undefined;
+  Extract: undefined;
+  Recipes: undefined;
   MealPlanner: undefined;
   ShoppingList: {
     weekStart?: string;
@@ -50,41 +55,150 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TAB ICON COMPONENT
+// TAB CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface TabIconProps {
-  focused: boolean;
-  Icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
-  label: string;
-}
+const TAB_CONFIG = [
+  { name: 'Extract' as const, Icon: Link, label: 'Extract' },
+  { name: 'Recipes' as const, Icon: BookOpen, label: 'Recipes' },
+  { name: 'MealPlanner' as const, Icon: Calendar, label: 'Plan' },
+  { name: 'ShoppingList' as const, Icon: ShoppingCart, label: 'Shop' },
+  { name: 'Settings' as const, Icon: Settings, label: 'Settings' },
+];
 
-function TabIcon({ focused, Icon, label }: TabIconProps) {
+// ═══════════════════════════════════════════════════════════════════════════
+// FLOATING TAB BAR COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Web-specific frosted glass styles
+const webFrostedGlass = Platform.OS === 'web' ? {
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)', // Safari support
+} : {};
+
+function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const colors = useColors();
-  // Subtle Tinted Background style
-  // Active: primary color icon/text with soft tinted pill background
-  // Inactive: muted gray, no background
-  // Using primary (forest green) for consistency with buttons and filters
-  const iconTextColor = focused ? colors.primary : colors.tabBarInactive;
-  const bgColor = focused ? `${colors.primary}26` : 'transparent';
+  const { isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { isVisible, resetVisibility } = useOptionalTabBarVisibility();
+
+  // Animation for hide/show
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(translateY, {
+      toValue: isVisible ? 0 : 100,
+      friction: 20,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  }, [isVisible, translateY]);
+
+  // Frosted glass background - semi-transparent with blur
+  const frostedBackground = isDark
+    ? 'rgba(30, 30, 30, 0.85)'  // Dark mode: dark semi-transparent
+    : 'rgba(255, 255, 255, 0.85)'; // Light mode: white semi-transparent
+
+  const borderColor = isDark
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.08)';
 
   return (
-    <View
+    <Animated.View
       style={[
-        styles.tabIcon,
-        { backgroundColor: bgColor },
+        styles.floatingContainer,
+        { paddingBottom: insets.bottom + 16 },
+        { transform: [{ translateY }] },
       ]}
     >
-      <Icon size={22} color={iconTextColor} strokeWidth={focused ? 2 : 1.5} />
-      <Text
+      <View
         style={[
-          styles.tabLabel,
-          { color: iconTextColor },
+          styles.floatingBar,
+          {
+            backgroundColor: frostedBackground,
+            borderColor: borderColor,
+            borderWidth: 1,
+            // Shadow for depth
+            shadowColor: isDark ? '#000' : '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDark ? 0.3 : 0.15,
+            shadowRadius: 12,
+            elevation: 8,
+          },
+          webFrostedGlass as any,
         ]}
       >
-        {label}
-      </Text>
-    </View>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const tabConfig = TAB_CONFIG.find(t => t.name === route.name);
+          const isFocused = state.index === index;
+
+          if (!tabConfig) return null;
+
+          const onPress = () => {
+            // Haptic feedback on tab press
+            if (Platform.OS !== 'web') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              // Reset tab bar visibility when switching tabs
+              resetVisibility();
+              navigation.navigate(route.name);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({
+              type: 'tabLongPress',
+              target: route.key,
+            });
+          };
+
+          const IconComponent = tabConfig.Icon;
+          const iconTextColor = isFocused ? colors.primary : colors.tabBarInactive;
+          const bgColor = isFocused ? `${colors.primary}20` : 'transparent';
+
+          return (
+            <Pressable
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={options.tabBarAccessibilityLabel}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              style={({ pressed }) => [
+                styles.tabItem,
+                {
+                  backgroundColor: bgColor,
+                  transform: [{ scale: pressed ? 0.95 : isFocused ? 1.05 : 1 }],
+                },
+              ]}
+            >
+              <IconComponent
+                size={22}
+                color={iconTextColor}
+                strokeWidth={isFocused ? 2 : 1.5}
+              />
+              <Text
+                style={[
+                  styles.tabLabel,
+                  { color: iconTextColor },
+                ]}
+              >
+                {tabConfig.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </Animated.View>
   );
 }
 
@@ -93,58 +207,21 @@ function TabIcon({ focused, Icon, label }: TabIconProps) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function MainTabs() {
-  const colors = useColors();
-
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.tabBarBackground,
-          borderTopColor: colors.border,
-          height: 60 + 20, // 60px + safe area
-          paddingTop: spacing.sm,
-        },
-        tabBarShowLabel: false,
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={BookOpen} label="Recipes" />
-          ),
+    <TabBarVisibilityProvider>
+      <Tab.Navigator
+        tabBar={(props) => <FloatingTabBar {...props} />}
+        screenOptions={{
+          headerShown: false,
         }}
-      />
-      <Tab.Screen
-        name="MealPlanner"
-        component={MealPlannerScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={Calendar} label="Plan" />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="ShoppingList"
-        component={ShoppingListScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={ShoppingCart} label="Shop" />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={Settings} label="Settings" />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+      >
+        <Tab.Screen name="Extract" component={ExtractScreen} />
+        <Tab.Screen name="Recipes" component={RecipesScreen} />
+        <Tab.Screen name="MealPlanner" component={MealPlannerScreen} />
+        <Tab.Screen name="ShoppingList" component={ShoppingListScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
+      </Tab.Navigator>
+    </TabBarVisibilityProvider>
   );
 }
 
@@ -219,17 +296,32 @@ export function RootNavigator() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const styles = StyleSheet.create({
-  tabIcon: {
+  floatingContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.lg,
+  },
+  floatingBar: {
+    flexDirection: 'row',
+    borderRadius: 9999, // Pill shape
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 3,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.lg,
-    minWidth: 64,
+    borderRadius: borderRadius.full,
+    minWidth: 56,
   },
   tabLabel: {
     fontFamily: typography.fonts.sansMedium,
-    fontSize: 11,
+    fontSize: 10,
   },
 });

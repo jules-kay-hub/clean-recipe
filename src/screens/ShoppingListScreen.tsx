@@ -16,7 +16,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
-import { Share2 } from 'lucide-react-native';
+import { Share2, Trash2 } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { RootStackParamList, TabParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
@@ -33,6 +33,7 @@ import {
   Spinner,
 } from '../components/ui';
 import { decodeHtmlEntities } from '../utils/textUtils';
+import { useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 
 type ShoppingListNavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList, 'ShoppingList'>,
@@ -67,6 +68,7 @@ const CATEGORIES: { key: string; label: string; color: string }[] = [
   { key: 'bakery', label: 'Bakery', color: '#D4A84A' },        // Warm gold
   { key: 'pantry', label: 'Pantry', color: '#8B7355' },        // Warm brown
   { key: 'frozen', label: 'Frozen', color: '#7AAAE4' },        // Ice blue
+  { key: 'canned', label: 'Canned Goods', color: '#7A6B5A' },  // Taupe
   { key: 'spices', label: 'Spices', color: '#B86A4A' },        // Rust
   { key: 'condiments', label: 'Condiments', color: '#9B7CB4' }, // Soft purple
   { key: 'beverages', label: 'Beverages', color: '#4A8C8C' },  // Teal
@@ -96,6 +98,7 @@ function ingredientKey(item: ShoppingItem): string {
 export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProps) {
   const colors = useColors();
   const { isDark } = useTheme();
+  const { onScroll } = useOptionalTabBarVisibility();
 
   // Get week dates from route params or use current week
   const { weekStart, weekEnd } = useMemo(() => {
@@ -121,6 +124,12 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
 
   // Mutation to save checked items
   const saveCheckedItems = useMutation(api.shoppingLists.saveCheckedItems);
+
+  // Mutation to remove items
+  const removeItem = useMutation(api.shoppingLists.removeItem);
+
+  // Mutation to clear all meal plans
+  const clearAllMealPlans = useMutation(api.mealPlans.clearAll);
 
   // Local checked state
   const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
@@ -163,6 +172,25 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
       });
     } catch (error) {
       console.error('Failed to save checked state:', error);
+    }
+  };
+
+  // Delete item from shopping list
+  const handleDeleteItem = async (item: ShoppingItem) => {
+    const key = ingredientKey(item);
+
+    try {
+      await removeItem({
+        weekStart,
+        ingredientKey: key,
+      });
+
+      // Also remove from local checked state
+      const newCheckedKeys = new Set(checkedKeys);
+      newCheckedKeys.delete(key);
+      setCheckedKeys(newCheckedKeys);
+    } catch (error) {
+      console.error('Failed to delete item:', error);
     }
   };
 
@@ -239,6 +267,16 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
     }
   };
 
+  // Clear all meal plans (removes all meal plan items from shopping list)
+  const handleClearMealPlans = async () => {
+    try {
+      await clearAllMealPlans({});
+      setCheckedKeys(new Set());
+    } catch (error) {
+      console.error('Failed to clear meal plans:', error);
+    }
+  };
+
   // Loading state
   if (shoppingData === undefined) {
     return (
@@ -265,6 +303,8 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -303,6 +343,11 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
             {checkedCount > 0 && (
               <Button onPress={handleClearChecked} variant="ghost" size="sm">
                 Clear Done ({checkedCount})
+              </Button>
+            )}
+            {shoppingData.mealCount > 0 && (
+              <Button onPress={handleClearMealPlans} variant="ghost" size="sm">
+                Clear Meals
               </Button>
             )}
           </View>
@@ -396,6 +441,20 @@ export function ShoppingListScreen({ navigation, route }: ShoppingListScreenProp
                             </Caption>
                           )}
                         </View>
+                        <Pressable
+                          onPress={() => handleDeleteItem(item)}
+                          style={({ pressed }) => [
+                            styles.deleteButton,
+                            { opacity: pressed ? 0.5 : 1 },
+                          ]}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <Trash2
+                            size={18}
+                            color={colors.textMuted}
+                            strokeWidth={1.5}
+                          />
+                        </Pressable>
                       </Pressable>
                     </React.Fragment>
                   ))}
@@ -432,7 +491,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.md,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: 80, // Account for floating tab bar
   },
   header: {
     marginBottom: spacing.md,
@@ -500,6 +559,10 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.sans,
     fontSize: typography.sizes.body,
     flex: 1,
+  },
+  deleteButton: {
+    padding: spacing.xs,
+    marginLeft: spacing.sm,
   },
   allDone: {
     alignItems: 'center',

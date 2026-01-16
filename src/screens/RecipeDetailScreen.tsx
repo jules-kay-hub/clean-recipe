@@ -12,9 +12,9 @@ import {
   Pressable,
   Text,
 } from 'react-native';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeft, Clock } from 'lucide-react-native';
+import { ChevronLeft, Clock, ShoppingCart } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
@@ -46,9 +46,14 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
   // Fetch recipe
   const recipe = useQuery(api.recipes.getById, { id: recipeId as Id<"recipes"> });
 
+  // Mutations
+  const addToShoppingList = useMutation(api.shoppingLists.addRecipeToList);
+
   // Local state
   const [servings, setServings] = useState(recipe?.servings || 4);
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
+  const [addedToList, setAddedToList] = useState(false);
+  const [isAddingToList, setIsAddingToList] = useState(false);
 
   // Update servings when recipe loads
   useEffect(() => {
@@ -93,6 +98,33 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
     });
   };
 
+  // Add to shopping list
+  const handleAddToShoppingList = async () => {
+    if (isAddingToList || addedToList) return;
+
+    setIsAddingToList(true);
+    try {
+      // Get current week start date
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      const weekStart = startOfWeek.toISOString().split('T')[0];
+
+      await addToShoppingList({
+        weekStart,
+        recipeId: recipeId as Id<"recipes">,
+      });
+      setAddedToList(true);
+
+      // Reset after a few seconds
+      setTimeout(() => setAddedToList(false), 3000);
+    } catch (error) {
+      console.error('Failed to add to shopping list:', error);
+    } finally {
+      setIsAddingToList(false);
+    }
+  };
+
   if (!recipe) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -130,7 +162,7 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
               onPress={() => navigation.goBack()}
               style={[styles.backButton, { backgroundColor: colors.overlay }]}
             >
-              <Text style={styles.backIcon}>←</Text>
+              <ChevronLeft size={24} color="#FFFFFF" strokeWidth={2} />
             </Pressable>
           </View>
         )}
@@ -241,9 +273,36 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
 
       {/* Sticky CTA */}
       <View style={[styles.cta, { backgroundColor: colors.background }, shadows.lg]}>
-        <Button onPress={startCooking} variant="accent" fullWidth>
-          Cook
-        </Button>
+        <View style={styles.ctaRow}>
+          <Pressable
+            onPress={handleAddToShoppingList}
+            disabled={isAddingToList}
+            style={({ pressed }) => [
+              styles.shopButton,
+              {
+                backgroundColor: addedToList ? colors.success : colors.surface,
+                borderColor: addedToList ? colors.success : colors.border,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
+          >
+            <ShoppingCart
+              size={20}
+              color={addedToList ? colors.textInverse : colors.text}
+              strokeWidth={1.5}
+            />
+            {addedToList && (
+              <Text style={[styles.shopButtonText, { color: colors.textInverse }]}>
+                Added!
+              </Text>
+            )}
+          </Pressable>
+          <View style={styles.ctaButtonFlex}>
+            <Button onPress={startCooking} variant="accent" fullWidth>
+              Cook
+            </Button>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -278,11 +337,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backIcon: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: '600',
   },
   content: {
     padding: spacing.md,
@@ -351,5 +405,27 @@ const styles = StyleSheet.create({
     right: 0,
     padding: spacing.md,
     paddingBottom: spacing.lg,
+  },
+  ctaRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: spacing.sm,
+  },
+  shopButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 48,
+  },
+  shopButtonText: {
+    fontFamily: typography.fonts.sansBold,
+    fontSize: typography.sizes.caption,
+  },
+  ctaButtonFlex: {
+    flex: 1,
   },
 });

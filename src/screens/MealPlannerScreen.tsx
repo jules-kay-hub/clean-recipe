@@ -16,7 +16,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp } from '@react-navigation/native';
-import { Sunrise, Sun, Moon } from 'lucide-react-native';
+import { Sunrise, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { RootStackParamList, TabParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
@@ -29,6 +29,7 @@ import {
   Card,
 } from '../components/ui';
 import { decodeHtmlEntities } from '../utils/textUtils';
+import { useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 
 type MealPlannerNavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList, 'MealPlanner'>,
@@ -58,6 +59,7 @@ const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
   const colors = useColors();
   const { isDark } = useTheme();
+  const { onScroll } = useOptionalTabBarVisibility();
 
   // Current week state
   const [weekOffset, setWeekOffset] = useState(0);
@@ -155,6 +157,8 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -168,7 +172,7 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
             onPress={previousWeek}
             style={[styles.navButton, { backgroundColor: colors.inputBackground }]}
           >
-            <Text style={[styles.navIcon, { color: colors.primary }]}>←</Text>
+            <ChevronLeft size={20} color={colors.primary} strokeWidth={2} />
           </Pressable>
 
           <Pressable onPress={goToToday} style={styles.weekLabel}>
@@ -192,7 +196,7 @@ export function MealPlannerScreen({ navigation }: MealPlannerScreenProps) {
             onPress={nextWeek}
             style={[styles.navButton, { backgroundColor: colors.inputBackground }]}
           >
-            <Text style={[styles.navIcon, { color: colors.primary }]}>→</Text>
+            <ChevronRight size={20} color={colors.primary} strokeWidth={2} />
           </Pressable>
         </View>
 
@@ -341,7 +345,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.md,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: 80, // Account for floating tab bar
   },
   header: {
     marginBottom: spacing.lg,
@@ -360,10 +364,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  navIcon: {
-    fontSize: 20,
-    fontWeight: '600',
   },
   weekLabel: {
     flex: 1,

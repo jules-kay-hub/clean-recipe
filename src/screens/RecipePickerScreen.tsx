@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { UtensilsCrossed, Clock, Users } from 'lucide-react-native';
+import { UtensilsCrossed, Clock, Users, ChevronLeft } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
@@ -186,7 +186,7 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={[styles.backIcon, { color: colors.text }]}>←</Text>
+          <ChevronLeft size={24} color={colors.text} strokeWidth={2} />
         </Pressable>
         <View style={styles.headerCenter}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -234,10 +234,6 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backIcon: {
-    fontSize: 24,
-    fontWeight: '600',
   },
   headerCenter: {
     flex: 1,

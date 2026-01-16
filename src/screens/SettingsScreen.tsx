@@ -15,6 +15,7 @@ import {
 import { Sun, Moon, Smartphone, UtensilsCrossed, Ruler, Info, MessageSquare, Star, ChevronRight } from 'lucide-react-native';
 import { useTheme, useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius } from '../styles/theme';
+import { useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -102,6 +103,7 @@ function ThemeOption({ label, Icon, isSelected, onSelect }: ThemeOptionProps) {
 export function SettingsScreen() {
   const { isDark, themeMode, setThemeMode } = useTheme();
   const colors = useColors();
+  const { onScroll } = useOptionalTabBarVisibility();
 
   const handleThemeSelect = (mode: ThemeMode) => {
     setThemeMode(mode);
@@ -117,6 +119,8 @@ export function SettingsScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.md,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: 80, // Account for floating tab bar
   },
   header: {
     marginBottom: spacing.lg,
