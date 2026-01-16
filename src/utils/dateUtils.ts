@@ -132,14 +132,19 @@ export function extractPassiveTime(instructions?: string[]): number {
   // Patterns for passive time (action + duration)
   // These are activities where you're waiting, not actively cooking
   const passivePatterns = [
-    // Rising/proofing (bread, dough)
+    // Rising/proofing (bread, dough) - flexible patterns that allow text between verb and time
     /(?:let\s+)?(?:rise|proof|ferment)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:allow|leave)\s+(?:to\s+)?(?:rise|proof)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    // Handle "rise...about X hours" with intervening text (up to 100 chars)
+    /(?:let\s+(?:the\s+)?(?:\w+\s+)?)?(?:rise|proof)[^.]*?(?:about|approximately|around|for)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    /(?:allow\s+(?:the\s+)?(?:\w+\s+)?(?:to\s+)?)?(?:rise|proof)[^.]*?(?:about|approximately|around|for)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
 
     // Resting
     /(?:let\s+)?rest\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:let\s+)?(?:it\s+)?sit\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:let\s+)?stand\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    // Handle "rest...about X minutes" with intervening text
+    /(?:let\s+(?:it\s+)?)?rest[^.]*?(?:about|approximately|around|for)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
 
     // Chilling/refrigerating
     /(?:chill|refrigerate|cool)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
