@@ -139,20 +139,24 @@ export function extractPassiveTime(instructions?: string[]): number {
     /(?:let\s+(?:the\s+)?(?:\w+\s+)?)?(?:rise|proof)[^.]*?(?:about|approximately|around|for)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:allow\s+(?:the\s+)?(?:\w+\s+)?(?:to\s+)?)?(?:rise|proof)[^.]*?(?:about|approximately|around|for)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
 
-    // Resting
+    // Resting/sitting
     /(?:let\s+)?rest\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:let\s+)?(?:it\s+)?sit\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:let\s+)?stand\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
-    // Handle "rest...about X minutes" with intervening text
+    // Handle "rest/sit...for X hours" with intervening text (e.g., "let the cheesecake sit in the oven...for 1 hour")
     /(?:let\s+(?:it\s+)?)?rest[^.]*?(?:about|approximately|around|for)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    /(?:let\s+(?:the\s+)?(?:\w+\s+)?)?sit[^.]*?(?:for|about)\s+(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
 
     // Chilling/refrigerating
     /(?:chill|refrigerate|cool)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
-    /(?:chill|refrigerate)\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
     /(?:in\s+(?:the\s+)?(?:fridge|refrigerator))\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    // Handle "refrigerate/chill...for X hours" with intervening text (e.g., "refrigerate the cheesecake for at least 4 hours")
+    /(?:chill|refrigerate)[^.]*?(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
 
     // Marinating
     /marinate\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
+    // Handle "marinate...for X hours" with intervening text
+    /marinate[^.]*?(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
 
     // Soaking
     /soak\s+(?:for\s+)?(?:at\s+least\s+)?(\d+(?:\s*(?:to|-)\s*\d+)?)\s*(hours?|minutes?|mins?|hrs?)/gi,
