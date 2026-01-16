@@ -198,6 +198,27 @@ export const removeMeal = mutation({
 });
 
 /**
+ * Clear all meal plans for the user
+ */
+export const clearAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getOrCreateUserId(ctx);
+
+    const allPlans = await ctx.db
+      .query("mealPlans")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    for (const plan of allPlans) {
+      await ctx.db.delete(plan._id);
+    }
+
+    return { deleted: allPlans.length };
+  },
+});
+
+/**
  * Copy a day's meal plan to another day
  */
 export const copyDay = mutation({

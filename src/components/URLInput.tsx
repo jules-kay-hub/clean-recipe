@@ -15,13 +15,15 @@ interface URLInputProps {
   isLoading?: boolean;
   error?: string;
   clearTrigger?: number; // Increment this to clear the URL input
+  autoFocus?: boolean; // Auto-focus input when true
 }
 
-export function URLInput({ onExtract, isLoading = false, error, clearTrigger }: URLInputProps) {
+export function URLInput({ onExtract, isLoading = false, error, clearTrigger, autoFocus = false }: URLInputProps) {
   const colors = useColors();
   const [url, setUrl] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const prevClearTrigger = useRef(clearTrigger);
+  const inputRef = useRef<TextInput>(null);
 
   // Clear URL when clearTrigger changes
   useEffect(() => {
@@ -30,6 +32,13 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger }: 
       prevClearTrigger.current = clearTrigger;
     }
   }, [clearTrigger]);
+
+  // Handle autoFocus
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
 
   const handleExtract = () => {
     if (url.trim()) {
@@ -75,6 +84,7 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger }: 
 
           {/* Input */}
           <TextInput
+            ref={inputRef}
             value={url}
             onChangeText={setUrl}
             placeholder="Paste recipe URL..."
@@ -108,7 +118,7 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger }: 
         <Pressable
           onPress={handleExtract}
           disabled={!canSubmit}
-          style={({ pressed, hovered }) => [
+          style={({ pressed }) => [
             styles.extractButton,
             {
               backgroundColor: !canSubmit

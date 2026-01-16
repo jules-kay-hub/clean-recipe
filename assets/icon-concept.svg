@@ -1,13 +1,13 @@
 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <!-- CleanRecipe App Icon - Leaf-Spoon Concept -->
+  <!-- Julienned App Icon - Leaf-Spoon Concept -->
 
-  <!-- Background with rounded corners (iOS style) -->
-  <rect width="1024" height="1024" rx="224" fill="#FAF8F5"/>
+  <!-- Background with rounded corners (iOS style) - Linen -->
+  <rect width="1024" height="1024" rx="224" fill="#F5F0EB"/>
 
   <!-- Subtle shadow -->
   <ellipse cx="520" cy="850" rx="180" ry="25" fill="rgba(0,0,0,0.06)"/>
 
-  <!-- Main leaf-spoon shape -->
+  <!-- Main leaf-spoon shape - Forest Green -->
   <path d="M512 100
            C700 100, 850 270, 850 490
            C850 670, 700 800, 570 800
@@ -17,49 +17,49 @@
            L454 800
            C324 800, 174 670, 174 490
            C174 270, 324 100, 512 100 Z"
-        fill="#5C7C5A"/>
+        fill="#2D4A3E"/>
 
-  <!-- Leaf center vein -->
+  <!-- Leaf center vein - Forest Light -->
   <path d="M512 180 L512 680"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="18"
         stroke-linecap="round"
         fill="none"/>
 
   <!-- Right side veins -->
   <path d="M512 280 Q600 340, 660 450"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="10"
         stroke-linecap="round"
         fill="none"/>
   <path d="M512 420 Q580 470, 620 550"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="10"
         stroke-linecap="round"
         fill="none"/>
   <path d="M512 540 Q560 580, 580 640"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="10"
         stroke-linecap="round"
         fill="none"/>
 
   <!-- Left side veins -->
   <path d="M512 280 Q424 340, 364 450"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="10"
         stroke-linecap="round"
         fill="none"/>
   <path d="M512 420 Q444 470, 404 550"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="10"
         stroke-linecap="round"
         fill="none"/>
   <path d="M512 540 Q464 580, 444 640"
-        stroke="#4A6548"
+        stroke="#4A7A6A"
         stroke-width="10"
         stroke-linecap="round"
         fill="none"/>
 
-  <!-- Terracotta accent at top -->
-  <circle cx="512" cy="180" r="28" fill="#C4704E"/>
+  <!-- Copper accent at top -->
+  <circle cx="512" cy="180" r="28" fill="#B87333"/>
 </svg>

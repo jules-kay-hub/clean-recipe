@@ -4,6 +4,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { handleClassifyIngredient } from "./lib/toolHandlers";
 
 // Get user ID (creates anonymous user if needed)
 async function getOrCreateUserId(ctx: { db: any }): Promise<Id<"users">> {
@@ -31,6 +32,7 @@ type IngredientCategory =
   | "bakery"
   | "pantry"
   | "frozen"
+  | "canned"
   | "spices"
   | "condiments"
   | "beverages"
@@ -150,7 +152,10 @@ export const generateFromMealPlans = query({
 
         const unit = normalizeUnit(ing.unit);
         const key = ingredientKey(item, unit);
-        const category = (ing.category as IngredientCategory) || "other";
+        // Classify ingredient if category is missing or "other"
+        const category = (ing.category && ing.category !== "other")
+          ? (ing.category as IngredientCategory)
+          : handleClassifyIngredient(item);
 
         if (aggregated.has(key)) {
           const existing = aggregated.get(key)!;
@@ -163,6 +168,42 @@ export const generateFromMealPlans = query({
             unit: unit,
             category: category,
             recipes: new Set([recipe.title]),
+          });
+        }
+      }
+    }
+
+    // Get custom items from saved shopping list
+    const savedList = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", userId).eq("weekStart", startDate)
+      )
+      .first();
+
+    // Merge custom items into aggregated
+    if (savedList?.customItems) {
+      for (const customItem of savedList.customItems) {
+        const unit = normalizeUnit(customItem.unit);
+        const key = ingredientKey(customItem.ingredient, unit);
+        // Classify ingredient if category is missing or "other"
+        const category = (customItem.category && customItem.category !== "other")
+          ? (customItem.category as IngredientCategory)
+          : handleClassifyIngredient(customItem.ingredient);
+
+        if (aggregated.has(key)) {
+          const existing = aggregated.get(key)!;
+          existing.quantity += customItem.quantity || 1;
+          if (customItem.recipeTitle) {
+            existing.recipes.add(customItem.recipeTitle);
+          }
+        } else {
+          aggregated.set(key, {
+            ingredient: customItem.ingredient,
+            quantity: customItem.quantity || 1,
+            unit: unit,
+            category: category,
+            recipes: customItem.recipeTitle ? new Set([customItem.recipeTitle]) : new Set(),
           });
         }
       }
@@ -208,6 +249,7 @@ export const generateFromMealPlans = query({
       items,
       recipeCount: recipes.size,
       mealCount: Array.from(mealPlans).reduce((sum, p) => sum + p.meals.length, 0),
+      customItemCount: savedList?.customItems?.length || 0,
     };
   },
 });
@@ -265,5 +307,140 @@ export const saveCheckedItems = mutation({
         updatedAt: Date.now(),
       });
     }
+  },
+});
+
+/**
+ * Add a recipe's ingredients to the shopping list
+ */
+export const addRecipeToList = mutation({
+  args: {
+    weekStart: v.string(),
+    recipeId: v.id("recipes"),
+  },
+  handler: async (ctx, { weekStart, recipeId }) => {
+    const userId = await getOrCreateUserId(ctx);
+
+    // Fetch the recipe
+    const recipe = await ctx.db.get(recipeId);
+    if (!recipe) {
+      throw new Error("Recipe not found");
+    }
+
+    // Get or create shopping list for this week
+    let shoppingList = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", userId).eq("weekStart", weekStart)
+      )
+      .first();
+
+    const now = Date.now();
+
+    // Build custom items from recipe ingredients with proper categorization
+    const newItems = recipe.ingredients.map((ing) => {
+      const ingredientName = ing.item || ing.text;
+      // Classify the ingredient if it doesn't have a category or is "other"
+      const category = (ing.category && ing.category !== "other")
+        ? ing.category
+        : handleClassifyIngredient(ingredientName);
+
+      return {
+        ingredient: ingredientName,
+        quantity: ing.quantity,
+        unit: ing.unit,
+        category,
+        recipeId: recipeId,
+        recipeTitle: recipe.title,
+        addedAt: now,
+      };
+    });
+
+    if (shoppingList) {
+      // Merge with existing custom items
+      const existingItems = shoppingList.customItems || [];
+      await ctx.db.patch(shoppingList._id, {
+        customItems: [...existingItems, ...newItems],
+        updatedAt: now,
+      });
+      return shoppingList._id;
+    } else {
+      // Create new shopping list with custom items
+      return await ctx.db.insert("shoppingLists", {
+        userId,
+        weekStart,
+        checkedItems: [],
+        customItems: newItems,
+        updatedAt: now,
+      });
+    }
+  },
+});
+
+/**
+ * Remove an item from the shopping list (custom items only)
+ */
+export const removeItem = mutation({
+  args: {
+    weekStart: v.string(),
+    ingredientKey: v.string(), // "ingredient|unit" key
+  },
+  handler: async (ctx, { weekStart, ingredientKey }) => {
+    const userId = await getOrCreateUserId(ctx);
+
+    const shoppingList = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", userId).eq("weekStart", weekStart)
+      )
+      .first();
+
+    if (!shoppingList || !shoppingList.customItems) {
+      return;
+    }
+
+    // Remove items matching the key
+    const [ingredientName, unit] = ingredientKey.split("|");
+    const filteredItems = shoppingList.customItems.filter((item) => {
+      const itemKey = `${item.ingredient.toLowerCase().trim()}|${item.unit || ""}`;
+      return itemKey !== ingredientKey;
+    });
+
+    // Also remove from checked items
+    const filteredChecked = shoppingList.checkedItems.filter(
+      (key) => key !== ingredientKey
+    );
+
+    await ctx.db.patch(shoppingList._id, {
+      customItems: filteredItems,
+      checkedItems: filteredChecked,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Clear all custom items from the shopping list
+ */
+export const clearCustomItems = mutation({
+  args: {
+    weekStart: v.string(),
+  },
+  handler: async (ctx, { weekStart }) => {
+    const userId = await getOrCreateUserId(ctx);
+
+    const shoppingList = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", userId).eq("weekStart", weekStart)
+      )
+      .first();
+
+    if (!shoppingList) return;
+
+    await ctx.db.patch(shoppingList._id, {
+      customItems: [],
+      updatedAt: Date.now(),
+    });
   },
 });

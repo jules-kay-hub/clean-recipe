@@ -81,6 +81,26 @@ export const search = query({
   },
 });
 
+/**
+ * Check if user already has a recipe from this URL
+ * Returns the existing recipe if found, null otherwise
+ */
+import { hashUrl } from "./lib/utils";
+
+export const checkDuplicate = query({
+  args: {
+    userId: v.id("users"),
+    url: v.string(),
+  },
+  handler: async (ctx, { userId, url }) => {
+    const urlHash = hashUrl(url);
+    return await ctx.db
+      .query("recipes")
+      .withIndex("by_user_url", (q) => q.eq("userId", userId).eq("urlHash", urlHash))
+      .first();
+  },
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERNAL QUERIES (for use by actions)
 // ═══════════════════════════════════════════════════════════════════════════

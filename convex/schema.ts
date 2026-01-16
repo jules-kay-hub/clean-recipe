@@ -114,12 +114,24 @@ export default defineSchema({
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SHOPPING LISTS TABLE
-  // Stores checked state for dynamically generated shopping lists
+  // Stores checked state and custom items for shopping lists
   // ═══════════════════════════════════════════════════════════════════════════
   shoppingLists: defineTable({
     userId: v.id("users"),
     weekStart: v.string(), // ISO date of week start: "2026-01-13"
     checkedItems: v.array(v.string()), // Array of ingredient keys that are checked
+    // Custom items added directly (not from meal plans)
+    customItems: v.optional(v.array(
+      v.object({
+        ingredient: v.string(),
+        quantity: v.optional(v.number()),
+        unit: v.optional(v.string()),
+        category: v.string(),
+        recipeId: v.optional(v.id("recipes")), // Source recipe if added from recipe
+        recipeTitle: v.optional(v.string()),
+        addedAt: v.number(),
+      })
+    )),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])

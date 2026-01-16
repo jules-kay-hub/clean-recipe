@@ -3,10 +3,11 @@
 
 import React from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
-import { UtensilsCrossed, Clock, Users } from 'lucide-react-native';
+import { UtensilsCrossed, Clock, Users, Moon } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows } from '../styles/theme';
 import { decodeHtmlEntities } from '../utils/textUtils';
+import { formatDuration, detectOvernightChill } from '../utils/dateUtils';
 
 interface RecipeCardProps {
   id: string;
@@ -15,6 +16,7 @@ interface RecipeCardProps {
   prepTime?: number;
   cookTime?: number;
   servings?: number;
+  instructions?: string[];
   onPress: (id: string) => void;
   onLongPress?: (id: string) => void;
 }
@@ -26,11 +28,14 @@ export function RecipeCard({
   prepTime,
   cookTime,
   servings,
+  instructions,
   onPress,
   onLongPress,
 }: RecipeCardProps) {
   const colors = useColors();
   const totalTime = (prepTime || 0) + (cookTime || 0);
+  const formattedTime = formatDuration(totalTime);
+  const isOvernightChill = detectOvernightChill(instructions, prepTime, cookTime);
 
   return (
     <Pressable
@@ -60,6 +65,16 @@ export function RecipeCard({
             <UtensilsCrossed size={32} color={colors.textSecondary} strokeWidth={1.5} />
           </View>
         )}
+
+        {/* Overnight Chill Badge */}
+        {isOvernightChill && (
+          <View style={[styles.overnightBadge, { backgroundColor: colors.primary }]}>
+            <Moon size={12} color={colors.textInverse} strokeWidth={2} />
+            <Text style={[styles.overnightText, { color: colors.textInverse }]}>
+              Overnight
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Content */}
@@ -74,11 +89,11 @@ export function RecipeCard({
 
         {/* Meta Info */}
         <View style={styles.metaContainer}>
-          {totalTime > 0 && (
+          {formattedTime && (
             <View style={styles.metaItem}>
               <Clock size={14} color={colors.textSecondary} strokeWidth={1.5} />
               <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {totalTime}m
+                {formattedTime}
               </Text>
             </View>
           )}
@@ -107,10 +122,28 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: borderRadius.md,
     borderTopRightRadius: borderRadius.md,
     overflow: 'hidden',
+    position: 'relative',
   },
   image: {
     width: '100%',
     height: '100%',
+  },
+  overnightBadge: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  overnightText: {
+    fontFamily: typography.fonts.sansBold,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   imagePlaceholder: {
     width: '100%',

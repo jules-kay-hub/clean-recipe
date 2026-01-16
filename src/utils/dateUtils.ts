@@ -51,6 +51,74 @@ export function formatRelativeTime(timestamp: number): string {
 }
 
 /**
+ * Format a duration in minutes to a human-readable string
+ * e.g., 90 -> "1h 30m", 1500 -> "1d 1h", 45 -> "45m"
+ */
+export function formatDuration(totalMinutes: number): string {
+  if (totalMinutes <= 0) return '';
+
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+
+  if (days > 0) {
+    parts.push(`${days}d`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
+  if (minutes > 0 && days === 0) {
+    // Only show minutes if no days (keep it concise)
+    parts.push(`${minutes}m`);
+  }
+
+  // If we have days but no hours/minutes shown, add hours if non-zero
+  if (days > 0 && parts.length === 1 && hours > 0) {
+    parts.push(`${hours}h`);
+  }
+
+  return parts.join(' ') || `${totalMinutes}m`;
+}
+
+/**
+ * Check if a recipe requires overnight chilling based on instructions or time
+ */
+export function detectOvernightChill(instructions?: string[], prepTime?: number, cookTime?: number): boolean {
+  // Check instructions for overnight keywords
+  if (instructions) {
+    const text = instructions.join(' ').toLowerCase();
+    const overnightKeywords = [
+      'overnight',
+      'refrigerate for at least 8 hours',
+      'refrigerate for 8 hours',
+      'chill for at least 8 hours',
+      'chill for 8 hours',
+      'rest overnight',
+      'let sit overnight',
+      'marinate overnight',
+      '24 hours',
+      '12 hours',
+    ];
+
+    for (const keyword of overnightKeywords) {
+      if (text.includes(keyword)) {
+        return true;
+      }
+    }
+  }
+
+  // Check if total time is 8+ hours (480 minutes)
+  const totalTime = (prepTime || 0) + (cookTime || 0);
+  if (totalTime >= 480) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Format a timestamp as a short relative time
  * e.g., "now", "5m", "3d", "2w"
  */

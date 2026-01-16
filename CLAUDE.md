@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CleanRecipe is an ad-free recipe extraction mobile app. Users paste a recipe URL, and the app extracts just the ingredients and instructions—no ads, no life stories. Built with React Native + Expo for the mobile frontend and Convex for the serverless backend with real-time sync.
+Rogue Recipe is an ad-free recipe extraction mobile app. Users paste a recipe URL, and the app extracts just the ingredients and instructions—no ads, no life stories. Built with React Native + Expo for the mobile frontend and Convex for the serverless backend with real-time sync.
 
 ## Commands
 
@@ -95,10 +95,11 @@ Claude orchestrates these tools to extract recipes:
 
 ## Design System
 
-- **Primary**: Sage `#5C7C5A`
-- **Accent**: Terracotta `#C4704E`
-- **Background**: Cream `#FAF8F5`
-- **Fonts**: Fraunces (display), DM Sans (body)
+- **Primary**: Deep Navy `#0D1B2A`
+- **Background**: Paper `#FAFAFA`
+- **Text**: Ink `#1A1A1A`
+- **Fonts**: Inter (all text)
+- **Icons**: Lucide React Native
 
 Theme tokens are in `src/styles/theme.ts`.
 
