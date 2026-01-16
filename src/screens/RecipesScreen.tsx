@@ -19,7 +19,7 @@ import { Search, X, ChevronDown } from 'lucide-react-native';
 
 // Web-specific styles to remove browser focus outlines
 const webInputStyle = Platform.OS === 'web' ? { outlineStyle: 'none' } : {};
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '../../convex/_generated/api';
 import { Doc, Id } from '../../convex/_generated/dataModel';
@@ -31,6 +31,9 @@ import { ScreenTitle, Caption, EmptyState, Spinner } from '../components/ui';
 import { RecipeCard } from '../components/RecipeCard';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
+import { useOfflineRecipes } from '../hooks/useOfflineRecipes';
+import { OfflineBadge } from '../components/OfflineIndicator';
+import { CachedRecipe } from '../services/offlineStorage';
 
 // Animated grid item for stagger effect
 interface AnimatedGridItemProps {
@@ -109,8 +112,14 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
   // Fetch recipes and get/create demo user
   const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
   const deleteRecipe = useMutation(api.recipes.remove);
-  // Pass userId to list query so it works without auth (demo mode)
-  const recipes = useQuery(api.recipes.list, userId ? { userId } : "skip") || [];
+  // Use offline-aware hook that falls back to cached recipes when offline
+  const {
+    recipes,
+    isOffline,
+    isSyncing,
+    isLoading: recipesLoading,
+    isUsingCache,
+  } = useOfflineRecipes(userId);
 
   // Count quick recipes (under 30 min)
   const quickRecipeCount = useMemo(() => {
@@ -120,9 +129,9 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
     }).length;
   }, [recipes]);
 
-  // Filter and sort recipes
+  // Filter and sort recipes (handles both Doc<"recipes"> and CachedRecipe)
   const displayedRecipes = useMemo(() => {
-    let filtered = [...recipes];
+    let filtered = [...recipes] as (Doc<"recipes"> | CachedRecipe)[];
 
     // Apply search filter
     if (searchQuery.trim()) {
@@ -196,8 +205,8 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
   const handleDeleteRecipe = (recipeId: string) => {
     if (!userId) return;
 
-    // Find recipe title for confirmation message
-    const recipe = recipes.find((r) => r._id === recipeId);
+    // Find recipe title for confirmation message (handle both Convex and cached recipes)
+    const recipe = recipes.find((r) => ('_id' in r ? r._id : r.id) === recipeId);
     const recipeName = recipe?.title || 'this recipe';
 
     setDeleteConfirm({
@@ -250,8 +259,13 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <ScreenTitle>Recipes</ScreenTitle>
-            <Caption>{recipes.length} saved</Caption>
+            <View style={styles.titleWithBadge}>
+              <ScreenTitle>Recipes</ScreenTitle>
+              {isOffline && <OfflineBadge />}
+            </View>
+            <Caption>
+              {recipes.length} saved{isUsingCache && !isOffline ? ' (cached)' : ''}
+            </Caption>
           </View>
 
           {/* Full-width Pill Search Bar */}
@@ -368,7 +382,7 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
         )}
 
         {/* Recipe Grid */}
-        {recipes === undefined ? (
+        {recipesLoading ? (
           <View style={styles.loading}>
             <Spinner />
           </View>
@@ -394,26 +408,30 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
           </View>
         ) : (
           <View style={styles.grid}>
-            {displayedRecipes.map((recipe: Doc<"recipes">, index: number) => (
-              <AnimatedGridItem
-                key={recipe._id}
-                index={index}
-                triggerKey={`${sortOption}-${timeFilter}-${searchQuery}`}
-              >
-                <RecipeCard
-                  id={recipe._id}
-                  title={recipe.title}
-                  imageUrl={recipe.imageUrl}
-                  prepTime={recipe.prepTime}
-                  cookTime={recipe.cookTime}
-                  inactiveTime={recipe.inactiveTime}
-                  servings={recipe.servings}
-                  instructions={recipe.instructions}
-                  onPress={handleRecipePress}
-                  onLongPress={handleDeleteRecipe}
-                />
-              </AnimatedGridItem>
-            ))}
+            {displayedRecipes.map((recipe: Doc<"recipes"> | CachedRecipe, index: number) => {
+              // Handle both Convex Doc (_id) and CachedRecipe (id)
+              const recipeId = '_id' in recipe ? recipe._id : recipe.id;
+              return (
+                <AnimatedGridItem
+                  key={recipeId}
+                  index={index}
+                  triggerKey={`${sortOption}-${timeFilter}-${searchQuery}`}
+                >
+                  <RecipeCard
+                    id={recipeId}
+                    title={recipe.title}
+                    imageUrl={recipe.imageUrl}
+                    prepTime={recipe.prepTime}
+                    cookTime={recipe.cookTime}
+                    inactiveTime={recipe.inactiveTime}
+                    servings={recipe.servings}
+                    instructions={recipe.instructions}
+                    onPress={handleRecipePress}
+                    onLongPress={isOffline ? undefined : handleDeleteRecipe}
+                  />
+                </AnimatedGridItem>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -449,6 +467,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.md,
+  },
+  titleWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   searchBar: {
     flexDirection: 'row',

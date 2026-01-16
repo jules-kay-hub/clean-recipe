@@ -2,7 +2,8 @@
 // Recipe card component for the home screen grid
 
 import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { UtensilsCrossed, Clock, Users, Moon, Timer } from 'lucide-react-native';
 import { useColors } from '../hooks/useTheme';
 import { typography, spacing, borderRadius, shadows } from '../styles/theme';
@@ -71,7 +72,9 @@ export function RecipeCard({
           <Image
             source={{ uri: imageUrl }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="disk"
+            transition={200}
           />
         ) : (
           <View style={[styles.imagePlaceholder, { backgroundColor: colors.border }]}>

@@ -16,6 +16,7 @@ import {
   Fraunces_700Bold,
 } from '@expo-google-fonts/fraunces';
 import { ThemeProvider } from './src/hooks/useTheme';
+import { OfflineProvider } from './src/context/OfflineContext';
 import { RootNavigator } from './src/navigation';
 
 // Initialize Convex client
@@ -65,7 +66,9 @@ export default function App() {
   return (
     <ConvexProvider client={convex}>
       <ThemeProvider>
-        <RootNavigator />
+        <OfflineProvider>
+          <RootNavigator />
+        </OfflineProvider>
       </ThemeProvider>
     </ConvexProvider>
   );

@@ -5,21 +5,21 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   ScrollView,
-  Image,
   StyleSheet,
   SafeAreaView,
   StatusBar,
   Pressable,
   Text,
 } from 'react-native';
-import { useQuery, useMutation } from 'convex/react';
+import { Image } from 'expo-image';
+import { useMutation } from 'convex/react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChevronLeft, Clock, ShoppingCart, Timer, Moon } from 'lucide-react-native';
+import { ChevronLeft, Clock, ShoppingCart, Timer, Moon, WifiOff } from 'lucide-react-native';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
-import { spacing, typography, shadows } from '../styles/theme';
+import { spacing, typography, shadows, borderRadius } from '../styles/theme';
 import { formatRelativeTime, formatDuration, extractPassiveTime } from '../utils/dateUtils';
 import {
   HeroTitle,
@@ -32,6 +32,7 @@ import {
 import { IngredientItem } from '../components/IngredientItem';
 import { ServingsAdjuster } from '../components/ServingsAdjuster';
 import { decodeHtmlEntities } from '../utils/textUtils';
+import { useOfflineRecipe } from '../hooks/useOfflineRecipes';
 
 interface RecipeDetailScreenProps {
   route: { params: { recipeId: string } };
@@ -43,8 +44,8 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
   const colors = useColors();
   const { isDark } = useTheme();
 
-  // Fetch recipe
-  const recipe = useQuery(api.recipes.getById, { id: recipeId as Id<"recipes"> });
+  // Fetch recipe with offline support (auto-caches on view)
+  const { recipe, isOffline, isLoading } = useOfflineRecipe(recipeId);
 
   // Mutations
   const addToShoppingList = useMutation(api.shoppingLists.addRecipeToList);
@@ -125,7 +126,7 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
     }
   };
 
-  if (!recipe) {
+  if (isLoading || !recipe) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loading}>
@@ -161,7 +162,9 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
             <Image
               source={{ uri: recipe.imageUrl }}
               style={styles.image}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="disk"
+              transition={200}
             />
             {/* Back Button Overlay */}
             <Pressable
@@ -170,6 +173,15 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
             >
               <ChevronLeft size={24} color="#FFFFFF" strokeWidth={2} />
             </Pressable>
+            {/* Offline Badge */}
+            {isOffline && (
+              <View style={[styles.offlineBadge, { backgroundColor: colors.warning }]}>
+                <WifiOff size={12} color={colors.textInverse} strokeWidth={2} />
+                <Text style={[styles.offlineBadgeText, { color: colors.textInverse }]}>
+                  Offline
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -300,13 +312,13 @@ export function RecipeDetailScreen({ route, navigation }: RecipeDetailScreenProp
         <View style={styles.ctaRow}>
           <Pressable
             onPress={handleAddToShoppingList}
-            disabled={isAddingToList}
+            disabled={isAddingToList || isOffline}
             style={({ pressed }) => [
               styles.shopButton,
               {
                 backgroundColor: addedToList ? colors.success : colors.surface,
                 borderColor: addedToList ? colors.success : colors.border,
-                opacity: pressed ? 0.8 : 1,
+                opacity: pressed || isOffline ? 0.5 : 1,
               },
             ]}
           >
@@ -361,6 +373,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  offlineBadge: {
+    position: 'absolute',
+    top: spacing.xl + 20,
+    right: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  offlineBadgeText: {
+    fontFamily: typography.fonts.sansBold,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   content: {
     padding: spacing.md,
