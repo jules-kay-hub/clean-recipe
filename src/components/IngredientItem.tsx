@@ -78,17 +78,6 @@ export function IngredientItem({
 
       {/* Ingredient Text */}
       <View style={styles.textContainer}>
-        {quantity && (
-          <Text
-            style={[
-              styles.quantity,
-              kitchenMode && styles.kitchenQuantity,
-              { color: checked ? colors.textMuted : colors.text },
-            ]}
-          >
-            {formatQuantity(quantity)}
-          </Text>
-        )}
         <Text
           style={[
             styles.text,
@@ -98,8 +87,17 @@ export function IngredientItem({
               textDecorationLine: checked ? 'line-through' : 'none',
             },
           ]}
-          numberOfLines={2}
         >
+          {quantity && (
+            <Text
+              style={[
+                styles.quantity,
+                kitchenMode && styles.kitchenQuantity,
+              ]}
+            >
+              {formatQuantity(quantity)}{' '}
+            </Text>
+          )}
           {unit ? `${unit} ` : ''}{decodeHtmlEntities(item || text)}
         </Text>
       </View>
@@ -132,10 +130,6 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'baseline',
-    gap: spacing.xs,
   },
   quantity: {
     fontFamily: typography.fonts.sansBold,
