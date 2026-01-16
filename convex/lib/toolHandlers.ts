@@ -223,11 +223,7 @@ function flattenInstructions(items: unknown[]): string[] {
 
       // HowToSection with itemListElement (nested steps)
       if (itemObj["@type"] === "HowToSection" && Array.isArray(itemObj.itemListElement)) {
-        // Optionally add section name as a header
-        if (itemObj.name && typeof itemObj.name === "string") {
-          results.push(`**${itemObj.name}**`);
-        }
-        // Recursively flatten the nested items
+        // Skip section name - just extract the actual steps
         results.push(...flattenInstructions(itemObj.itemListElement));
         continue;
       }
@@ -475,12 +471,16 @@ export function handleParseIngredient(ingredientText: string): ParsedIngredient 
   // Remaining text is the item
   const item = text;
 
+  // Classify ingredient into category
+  const category = handleClassifyIngredient(item || ingredientText);
+
   return {
     text: ingredientText,
     quantity,
     unit,
     item,
     preparation,
+    category,
   };
 }
 
@@ -524,9 +524,11 @@ const CATEGORY_KEYWORDS: Record<IngredientCategory, string[]> = {
   frozen: ["frozen", "ice cream"],
   canned: ["canned", "tomato sauce", "tomato paste", "broth", "stock", "coconut milk"],
   spices: [
-    "pepper", "cumin", "paprika", "cinnamon", "nutmeg", "oregano",
+    "black pepper", "white pepper", "pepper flakes", "peppercorn",
+    "garlic powder", "onion powder", "chipotle powder", "chili powder",
+    "cumin", "paprika", "cinnamon", "nutmeg", "oregano", "cayenne",
     "basil", "thyme", "rosemary", "bay leaf", "curry", "turmeric",
-    "chili", "cayenne", "garlic powder", "onion powder",
+    "seasoning", "spice", "powder",
   ],
   condiments: [
     "ketchup", "mustard", "mayo", "mayonnaise", "soy sauce", "hot sauce",
@@ -539,10 +541,29 @@ const CATEGORY_KEYWORDS: Record<IngredientCategory, string[]> = {
 export function handleClassifyIngredient(ingredient: string): IngredientCategory {
   const lower = ingredient.toLowerCase();
 
-  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    for (const keyword of keywords) {
+  // Check categories in priority order (more specific first)
+  // This prevents "onion" matching before "onion powder"
+  const categoryOrder: IngredientCategory[] = [
+    "spices",      // Check spices first (onion powder, garlic powder, etc.)
+    "canned",      // Check canned goods (canned tomatoes, etc.)
+    "condiments",
+    "dairy",
+    "meat_seafood",
+    "bakery",
+    "frozen",
+    "beverages",
+    "pantry",
+    "produce",     // Check produce last (has generic terms like onion, garlic)
+    "other",
+  ];
+
+  for (const category of categoryOrder) {
+    const keywords = CATEGORY_KEYWORDS[category];
+    // Sort keywords by length (longest first) to match more specific terms
+    const sortedKeywords = [...keywords].sort((a, b) => b.length - a.length);
+    for (const keyword of sortedKeywords) {
       if (lower.includes(keyword)) {
-        return category as IngredientCategory;
+        return category;
       }
     }
   }
