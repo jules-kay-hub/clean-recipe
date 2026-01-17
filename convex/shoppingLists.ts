@@ -1,28 +1,11 @@
 // convex/shoppingLists.ts
-// Generate shopping lists from meal plans
+// Generate shopping lists from meal plans with authentication
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { handleClassifyIngredient } from "./lib/toolHandlers";
-
-// Get user ID (creates anonymous user if needed)
-async function getOrCreateUserId(ctx: { db: any }): Promise<Id<"users">> {
-  const existingUser = await ctx.db
-    .query("users")
-    .filter((q: any) => q.eq(q.field("email"), "demo@cleanrecipe.app"))
-    .first();
-
-  if (existingUser) {
-    return existingUser._id;
-  }
-
-  return await ctx.db.insert("users", {
-    email: "demo@cleanrecipe.app",
-    name: "Demo User",
-    createdAt: Date.now(),
-  });
-}
+import { requireAuth } from "./users";
 
 // Ingredient category type
 type IngredientCategory =
@@ -87,7 +70,7 @@ export const generateFromMealPlans = query({
     endDate: v.string(),
   },
   handler: async (ctx, { startDate, endDate }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     // Get all meal plans for the date range
     const mealPlans = await ctx.db
@@ -262,7 +245,7 @@ export const getSaved = query({
     weekStart: v.string(),
   },
   handler: async (ctx, { weekStart }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const saved = await ctx.db
       .query("shoppingLists")
@@ -284,7 +267,7 @@ export const saveCheckedItems = mutation({
     checkedItems: v.array(v.string()),
   },
   handler: async (ctx, { weekStart, checkedItems }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const existing = await ctx.db
       .query("shoppingLists")
@@ -319,7 +302,7 @@ export const addRecipeToList = mutation({
     recipeId: v.id("recipes"),
   },
   handler: async (ctx, { weekStart, recipeId }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     // Fetch the recipe
     const recipe = await ctx.db.get(recipeId);
@@ -386,7 +369,7 @@ export const removeItem = mutation({
     ingredientKey: v.string(), // "ingredient|unit" key
   },
   handler: async (ctx, { weekStart, ingredientKey }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const shoppingList = await ctx.db
       .query("shoppingLists")
@@ -427,7 +410,7 @@ export const clearCustomItems = mutation({
     weekStart: v.string(),
   },
   handler: async (ctx, { weekStart }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const shoppingList = await ctx.db
       .query("shoppingLists")

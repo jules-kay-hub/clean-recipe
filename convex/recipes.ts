@@ -1,45 +1,26 @@
 // convex/recipes.ts
-// Recipe queries and mutations with cache-first architecture
+// Recipe queries and mutations with authentication
 
 import { v } from "convex/values";
 import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
+import { requireAuth, getAuthenticatedUser } from "./users";
+import { hashUrl } from "./lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PUBLIC QUERIES
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Get all recipes for the current user
- * Supports both authenticated users and demo user (via userId param)
+ * Get all recipes for the current authenticated user
  */
 export const list = query({
-  args: {
-    userId: v.optional(v.id("users")),
-  },
-  handler: async (ctx, { userId }) => {
-    // If userId provided (demo mode), use it directly
-    if (userId) {
-      return await ctx.db
-        .query("recipes")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .order("desc")
-        .collect();
-    }
-
-    // Otherwise, try authenticated user
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email ?? ""))
-      .first();
-
-    if (!user) return [];
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireAuth(ctx);
 
     return await ctx.db
       .query("recipes")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
   },
@@ -51,7 +32,17 @@ export const list = query({
 export const getById = query({
   args: { id: v.id("recipes") },
   handler: async (ctx, { id }) => {
-    return await ctx.db.get(id);
+    const recipe = await ctx.db.get(id);
+    if (!recipe) return null;
+
+    // Optional: verify ownership (or allow public viewing)
+    const user = await getAuthenticatedUser(ctx);
+    if (user && recipe.userId !== user._id) {
+      // For now, allow reading any recipe
+      // Could restrict to owner only: return null;
+    }
+
+    return recipe;
   },
 });
 
@@ -61,19 +52,11 @@ export const getById = query({
 export const search = query({
   args: { query: v.string() },
   handler: async (ctx, { query }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email ?? ""))
-      .first();
-
-    if (!user) return [];
+    const userId = await requireAuth(ctx);
 
     const recipes = await ctx.db
       .query("recipes")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
     const searchLower = query.toLowerCase();
@@ -85,15 +68,14 @@ export const search = query({
  * Check if user already has a recipe from this URL
  * Returns the existing recipe if found, null otherwise
  */
-import { hashUrl } from "./lib/utils";
-
 export const checkDuplicate = query({
   args: {
-    userId: v.id("users"),
     url: v.string(),
   },
-  handler: async (ctx, { userId, url }) => {
+  handler: async (ctx, { url }) => {
+    const userId = await requireAuth(ctx);
     const urlHash = hashUrl(url);
+
     return await ctx.db
       .query("recipes")
       .withIndex("by_user_url", (q) => q.eq("userId", userId).eq("urlHash", urlHash))
@@ -152,6 +134,27 @@ export const getUserById = internalQuery({
 });
 
 /**
+ * Count recent extractions for rate limiting
+ */
+export const countRecentExtractions = internalQuery({
+  args: {
+    userId: v.id("users"),
+    hoursAgo: v.number(),
+  },
+  handler: async (ctx, { userId, hoursAgo }) => {
+    const cutoff = Date.now() - hoursAgo * 60 * 60 * 1000;
+
+    const recipes = await ctx.db
+      .query("recipes")
+      .withIndex("by_user_created", (q) => q.eq("userId", userId))
+      .filter((q) => q.gte(q.field("extractedAt"), cutoff))
+      .collect();
+
+    return recipes.length;
+  },
+});
+
+/**
  * Delete recipe by ID (internal - for testing/admin)
  */
 export const deleteByIdInternal = internalMutation({
@@ -161,43 +164,24 @@ export const deleteByIdInternal = internalMutation({
   },
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════
 // PUBLIC MUTATIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Delete a recipe
- * Supports both authenticated users and demo mode (via userId param)
  */
 export const remove = mutation({
   args: {
     id: v.id("recipes"),
-    userId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { id, userId }) => {
+  handler: async (ctx, { id }) => {
+    const userId = await requireAuth(ctx);
+
     const recipe = await ctx.db.get(id);
     if (!recipe) throw new Error("Recipe not found");
 
-    // Demo mode: verify userId matches recipe owner
-    if (userId) {
-      if (recipe.userId !== userId) {
-        throw new Error("Not authorized");
-      }
-      await ctx.db.delete(id);
-      return;
-    }
-
-    // Authenticated mode: verify via auth
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email ?? ""))
-      .first();
-
-    if (!user || recipe.userId !== user._id) {
+    if (recipe.userId !== userId) {
       throw new Error("Not authorized");
     }
 
@@ -230,18 +214,12 @@ export const update = mutation({
     cookTime: v.optional(v.number()),
   },
   handler: async (ctx, { id, ...updates }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = await requireAuth(ctx);
 
     const recipe = await ctx.db.get(id);
     if (!recipe) throw new Error("Recipe not found");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email ?? ""))
-      .first();
-
-    if (!user || recipe.userId !== user._id) {
+    if (recipe.userId !== userId) {
       throw new Error("Not authorized");
     }
 

@@ -47,7 +47,7 @@ export function useOfflineRecipes(userId: Id<"users"> | null): UseOfflineRecipes
   // Convex query - skip when offline or no userId
   const convexRecipes = useQuery(
     api.recipes.list,
-    userId && isOnline ? { userId } : "skip"
+    userId && isOnline ? {} : "skip"
   );
 
   // Load cached recipes when offline or initializing

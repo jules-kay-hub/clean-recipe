@@ -71,7 +71,11 @@ export default defineSchema({
   // USERS TABLE
   // ═══════════════════════════════════════════════════════════════════════════
   users: defineTable({
-    // Auth
+    // Clerk Authentication (optional for migration from demo user)
+    clerkId: v.optional(v.string()),
+    tokenIdentifier: v.optional(v.string()),
+
+    // Profile
     email: v.string(),
     name: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
@@ -89,7 +93,9 @@ export default defineSchema({
     createdAt: v.number(),
     lastActiveAt: v.optional(v.number()),
   })
-    .index("by_email", ["email"]),
+    .index("by_email", ["email"])
+    .index("by_clerk_id", ["clerkId"])
+    .index("by_token_identifier", ["tokenIdentifier"]),
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MEAL PLANS TABLE

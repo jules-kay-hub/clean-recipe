@@ -1,7 +1,7 @@
 // src/screens/SettingsScreen.tsx
-// Settings screen with theme toggle and app preferences
+// Settings screen with profile, theme toggle, and sign out
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -11,9 +11,12 @@ import {
   SafeAreaView,
   StatusBar,
   Linking,
+  Alert,
+  Image,
 } from 'react-native';
-import { Sun, Moon, Smartphone, UtensilsCrossed, Ruler, Info, MessageSquare, Star, ChevronRight } from 'lucide-react-native';
+import { Sun, Moon, Smartphone, UtensilsCrossed, Ruler, Info, MessageSquare, Star, ChevronRight, LogOut, User } from 'lucide-react-native';
 import { useTheme, useColors } from '../hooks/useTheme';
+import { useAuth } from '../context/AuthContext';
 import { typography, spacing, borderRadius } from '../styles/theme';
 import { useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 
@@ -25,18 +28,19 @@ interface SettingRowProps {
   subtitle?: string;
   onPress?: () => void;
   showChevron?: boolean;
+  danger?: boolean;
 }
 
-function SettingRow({ Icon, title, subtitle, onPress, showChevron }: SettingRowProps) {
+function SettingRow({ Icon, title, subtitle, onPress, showChevron, danger }: SettingRowProps) {
   const colors = useColors();
 
   const content = (
     <View style={[styles.settingRow, { backgroundColor: colors.surface }]}>
       <View style={styles.settingIconContainer}>
-        <Icon size={20} color={colors.textSecondary} strokeWidth={1.5} />
+        <Icon size={20} color={danger ? colors.error : colors.textSecondary} strokeWidth={1.5} />
       </View>
       <View style={styles.settingContent}>
-        <Text style={[styles.settingTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.settingTitle, { color: danger ? colors.error : colors.text }]}>{title}</Text>
         {subtitle && (
           <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
             {subtitle}
@@ -104,10 +108,42 @@ export function SettingsScreen() {
   const { isDark, themeMode, setThemeMode } = useTheme();
   const colors = useColors();
   const { onScroll } = useOptionalTabBarVisibility();
+  const { user, clerkUser, signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleThemeSelect = (mode: ThemeMode) => {
     setThemeMode(mode);
   };
+
+  const handleSignOut = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsSigningOut(true);
+              await signOut();
+            } catch (error) {
+              console.error('Sign out error:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            } finally {
+              setIsSigningOut(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Get user display info
+  const displayName = user?.name || clerkUser?.firstName || 'User';
+  const email = user?.email || clerkUser?.emailAddresses?.[0]?.emailAddress || '';
+  const avatarUrl = user?.avatarUrl || clerkUser?.imageUrl;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -125,6 +161,23 @@ export function SettingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
+        </View>
+
+        {/* Profile Section */}
+        <View style={[styles.profileCard, { backgroundColor: colors.surface }]}>
+          <View style={styles.profileInfo}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + '20' }]}>
+                <User size={28} color={colors.primary} strokeWidth={1.5} />
+              </View>
+            )}
+            <View style={styles.profileText}>
+              <Text style={[styles.profileName, { color: colors.text }]}>{displayName}</Text>
+              <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{email}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Theme Section */}
@@ -204,6 +257,19 @@ export function SettingsScreen() {
           />
         </View>
 
+        {/* Account Section */}
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
+          ACCOUNT
+        </Text>
+        <View style={styles.settingsGroup}>
+          <SettingRow
+            Icon={LogOut}
+            title={isSigningOut ? 'Signing out...' : 'Sign Out'}
+            onPress={isSigningOut ? undefined : handleSignOut}
+            danger
+          />
+        </View>
+
         {/* Tagline */}
         <View style={styles.footer}>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
@@ -221,7 +287,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.md,
-    paddingBottom: 80, // Account for floating tab bar
+    paddingBottom: 100, // Account for floating tab bar
   },
   header: {
     marginBottom: spacing.lg,
@@ -230,6 +296,40 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.display,
     fontSize: typography.sizes.title,
     marginBottom: spacing.xs,
+  },
+  profileCard: {
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  avatarPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileText: {
+    marginLeft: spacing.md,
+    flex: 1,
+  },
+  profileName: {
+    fontFamily: typography.fonts.sansBold,
+    fontSize: typography.sizes.body,
+    marginBottom: 2,
+  },
+  profileEmail: {
+    fontFamily: typography.fonts.sans,
+    fontSize: typography.sizes.caption,
   },
   sectionHeader: {
     fontFamily: typography.fonts.sansMedium,

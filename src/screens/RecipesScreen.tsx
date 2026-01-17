@@ -25,6 +25,7 @@ import { api } from '../../convex/_generated/api';
 import { Doc, Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
+import { useAuth } from '../context/AuthContext';
 import { spacing, typography, borderRadius, shadows } from '../styles/theme';
 import { timing, easing } from '../utils/animations';
 import { ScreenTitle, Caption, EmptyState, Spinner } from '../components/ui';
@@ -95,8 +96,8 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
   const colors = useColors();
   const { isDark } = useTheme();
   const { onScroll, resetVisibility } = useOptionalTabBarVisibility();
+  const { userId } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
-  const [userId, setUserId] = useState<Id<"users"> | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     visible: boolean;
     recipeId: string | null;
@@ -109,8 +110,7 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [timeFilter, setTimeFilter] = useState<'all' | 'quick'>('all');
 
-  // Fetch recipes and get/create demo user
-  const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
+  // Fetch recipes
   const deleteRecipe = useMutation(api.recipes.remove);
   // Use offline-aware hook that falls back to cached recipes when offline
   const {
@@ -176,21 +176,6 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
     za: 'Z-A',
   };
 
-  // Initialize demo user on mount
-  useEffect(() => {
-    const initUser = async () => {
-      try {
-        const user = await getOrCreateDemoUser();
-        if (user) {
-          setUserId(user._id);
-        }
-      } catch (error) {
-        console.error('Failed to initialize user:', error);
-      }
-    };
-    initUser();
-  }, [getOrCreateDemoUser]);
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     // Convex auto-refetches, just need to wait a bit
@@ -203,8 +188,6 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
   };
 
   const handleDeleteRecipe = (recipeId: string) => {
-    if (!userId) return;
-
     // Find recipe title for confirmation message (handle both Convex and cached recipes)
     const recipe = recipes.find((r) => ('_id' in r ? r._id : r.id) === recipeId);
     const recipeName = recipe?.title || 'this recipe';
@@ -217,12 +200,11 @@ export function RecipesScreen({ navigation }: RecipesScreenProps) {
   };
 
   const confirmDelete = async () => {
-    if (!userId || !deleteConfirm.recipeId) return;
+    if (!deleteConfirm.recipeId) return;
 
     try {
       await deleteRecipe({
         id: deleteConfirm.recipeId as Id<"recipes">,
-        userId,
       });
     } catch (error) {
       console.error('Failed to delete recipe:', error);

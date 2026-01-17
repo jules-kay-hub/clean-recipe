@@ -1,29 +1,9 @@
 // convex/mealPlans.ts
-// Meal planning CRUD operations
+// Meal planning CRUD operations with authentication
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
-
-// Get user ID (creates anonymous user if needed)
-async function getOrCreateUserId(ctx: { db: any }): Promise<Id<"users">> {
-  // For now, use a fixed demo user - in production, use auth
-  const existingUser = await ctx.db
-    .query("users")
-    .filter((q: any) => q.eq(q.field("email"), "demo@cleanrecipe.app"))
-    .first();
-
-  if (existingUser) {
-    return existingUser._id;
-  }
-
-  // Create demo user
-  return await ctx.db.insert("users", {
-    email: "demo@cleanrecipe.app",
-    name: "Demo User",
-    createdAt: Date.now(),
-  });
-}
+import { requireAuth } from "./users";
 
 /**
  * Get meal plan for a specific date
@@ -31,7 +11,7 @@ async function getOrCreateUserId(ctx: { db: any }): Promise<Id<"users">> {
 export const getByDate = query({
   args: { date: v.string() },
   handler: async (ctx, { date }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const mealPlan = await ctx.db
       .query("mealPlans")
@@ -72,7 +52,7 @@ export const getByDateRange = query({
     endDate: v.string(),
   },
   handler: async (ctx, { startDate, endDate }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const mealPlans = await ctx.db
       .query("mealPlans")
@@ -122,7 +102,7 @@ export const setMeal = mutation({
     servings: v.optional(v.number()),
   },
   handler: async (ctx, { date, slot, recipeId, servings }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     // Check if meal plan exists for this date
     const existingPlan = await ctx.db
@@ -169,7 +149,7 @@ export const removeMeal = mutation({
     ),
   },
   handler: async (ctx, { date, slot }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const existingPlan = await ctx.db
       .query("mealPlans")
@@ -203,7 +183,7 @@ export const removeMeal = mutation({
 export const clearAll = mutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const allPlans = await ctx.db
       .query("mealPlans")
@@ -227,7 +207,7 @@ export const copyDay = mutation({
     targetDate: v.string(),
   },
   handler: async (ctx, { sourceDate, targetDate }) => {
-    const userId = await getOrCreateUserId(ctx);
+    const userId = await requireAuth(ctx);
 
     const sourcePlan = await ctx.db
       .query("mealPlans")

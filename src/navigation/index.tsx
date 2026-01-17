@@ -1,8 +1,8 @@
 // src/navigation/index.tsx
-// Main navigation setup using React Navigation
+// Main navigation setup with authentication flow
 
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, Animated, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { typography, spacing, borderRadius } from '../styles/theme';
 import { TabBarVisibilityProvider, useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
+import { useAuth } from '../context/AuthContext';
 
 // Screens
 import { ExtractScreen } from '../screens/ExtractScreen';
@@ -24,9 +25,20 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { CookingModeScreen } from '../screens/CookingModeScreen';
 import { RecipePickerScreen } from '../screens/RecipePickerScreen';
 
+// Auth Screens
+import { SignInScreen } from '../screens/SignInScreen';
+import { SignUpScreen } from '../screens/SignUpScreen';
+import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
 // ═══════════════════════════════════════════════════════════════════════════
+
+export type AuthStackParamList = {
+  SignIn: undefined;
+  SignUp: undefined;
+  ForgotPassword: undefined;
+};
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -51,6 +63,7 @@ export type TabParamList = {
   Settings: undefined;
 };
 
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -226,67 +239,112 @@ function MainTabs() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// AUTH NAVIGATOR
+// ═══════════════════════════════════════════════════════════════════════════
+
+function AuthNavigator() {
+  const colors = useColors();
+
+  return (
+    <AuthStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <AuthStack.Screen name="SignIn" component={SignInScreen} />
+      <AuthStack.Screen name="SignUp" component={SignUpScreen} />
+      <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    </AuthStack.Navigator>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN STACK NAVIGATOR (authenticated users)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function MainNavigator() {
+  const colors = useColors();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          fontFamily: typography.fonts.sansBold,
+        },
+        headerShadowVisible: false,
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabs}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="RecipeDetail"
+        component={RecipeDetailScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="Extracting"
+        component={ExtractingScreen as React.ComponentType}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="RecipePicker"
+        component={RecipePickerScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="CookingMode"
+        component={CookingModeScreen}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ROOT NAVIGATOR
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function RootNavigator() {
   const colors = useColors();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  // Show loading state while auth is initializing
+  if (!isLoaded) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text,
-          headerTitleStyle: {
-            fontFamily: typography.fonts.sansBold,
-          },
-          headerShadowVisible: false,
-          contentStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="RecipeDetail"
-          component={RecipeDetailScreen}
-          options={{
-            headerShown: false,
-            presentation: 'card',
-          }}
-        />
-        <Stack.Screen
-          name="Extracting"
-          component={ExtractingScreen as React.ComponentType}
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
-        <Stack.Screen
-          name="RecipePicker"
-          component={RecipePickerScreen}
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
-        <Stack.Screen
-          name="CookingMode"
-          component={CookingModeScreen}
-          options={{
-            headerShown: false,
-            presentation: 'fullScreenModal',
-          }}
-        />
-      </Stack.Navigator>
+      {isSignedIn ? <MainNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }
@@ -296,6 +354,11 @@ export function RootNavigator() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   floatingContainer: {
     position: 'absolute',
     bottom: 0,

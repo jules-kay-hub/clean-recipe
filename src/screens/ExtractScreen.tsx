@@ -1,7 +1,7 @@
 // src/screens/ExtractScreen.tsx
-// Minimal extraction-focused screen
+// Minimal extraction-focused screen with authentication
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -12,14 +12,14 @@ import {
   TextInput,
 } from 'react-native';
 import { CheckCircle } from 'lucide-react-native';
-import { useQuery, useAction, useMutation } from 'convex/react';
+import { useQuery, useAction } from 'convex/react';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '../../convex/_generated/api';
-import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
-import { spacing, typography, borderRadius } from '../styles/theme';
+import { useAuth } from '../context/AuthContext';
+import { spacing, typography } from '../styles/theme';
 import { URLInput } from '../components/URLInput';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { JuliennedIcon } from '../components/JuliennedIcon';
@@ -31,10 +31,10 @@ interface ExtractScreenProps {
 export function ExtractScreen({ navigation }: ExtractScreenProps) {
   const colors = useColors();
   const { isDark } = useTheme();
+  const { userId } = useAuth();
   const [extractError, setExtractError] = useState<string | undefined>();
   const [isExtracting, setIsExtracting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [userId, setUserId] = useState<Id<"users"> | null>(null);
   const [urlClearTrigger, setUrlClearTrigger] = useState(0);
   const [shouldFocus, setShouldFocus] = useState(false);
   const urlInputRef = useRef<TextInput>(null);
@@ -48,25 +48,9 @@ export function ExtractScreen({ navigation }: ExtractScreenProps) {
     existingRecipe: { _id: string; title: string } | null;
   }>({ visible: false, url: '', existingRecipe: null });
 
-  // Fetch recipes and get/create demo user
+  // Fetch recipes and extraction action
   const extractRecipe = useAction(api.extraction.extractRecipe);
-  const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
-  const recipes = useQuery(api.recipes.list, userId ? { userId } : "skip") || [];
-
-  // Initialize demo user on mount
-  useEffect(() => {
-    const initUser = async () => {
-      try {
-        const user = await getOrCreateDemoUser();
-        if (user) {
-          setUserId(user._id);
-        }
-      } catch (error) {
-        console.error('Failed to initialize user:', error);
-      }
-    };
-    initUser();
-  }, [getOrCreateDemoUser]);
+  const recipes = useQuery(api.recipes.list, {}) || [];
 
   // Auto-focus URL input when screen comes into focus
   useFocusEffect(
@@ -105,7 +89,7 @@ export function ExtractScreen({ navigation }: ExtractScreenProps) {
 
   const handleExtract = async (url: string, skipDuplicateCheck = false) => {
     if (!userId) {
-      setExtractError('User not initialized. Please try again.');
+      setExtractError('Please sign in to extract recipes.');
       return;
     }
 

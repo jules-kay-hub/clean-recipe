@@ -1,7 +1,7 @@
 // src/screens/RecipePickerScreen.tsx
 // Select a recipe to add to meal plan
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { RootStackParamList } from '../navigation';
 import { useColors, useTheme } from '../hooks/useTheme';
+import { useAuth } from '../context/AuthContext';
 import { spacing, borderRadius, typography, shadows } from '../styles/theme';
 import { Spinner } from '../components/ui';
 import { decodeHtmlEntities } from '../utils/textUtils';
@@ -51,28 +52,10 @@ export function RecipePickerScreen({ route, navigation }: RecipePickerScreenProp
   const { date, slot } = route.params;
   const colors = useColors();
   const { isDark } = useTheme();
-
-  // Get demo user ID for recipe fetching
-  const [userId, setUserId] = useState<Id<"users"> | null>(null);
-  const getOrCreateDemoUser = useMutation(api.users.getOrCreateDemoUser);
-
-  // Initialize demo user on mount
-  useEffect(() => {
-    const initUser = async () => {
-      try {
-        const user = await getOrCreateDemoUser();
-        if (user) {
-          setUserId(user._id);
-        }
-      } catch (error) {
-        console.error('Failed to initialize user:', error);
-      }
-    };
-    initUser();
-  }, [getOrCreateDemoUser]);
+  const { userId } = useAuth();
 
   // Fetch user's saved recipes
-  const recipes = useQuery(api.recipes.list, userId ? { userId } : "skip");
+  const recipes = useQuery(api.recipes.list, userId ? {} : "skip");
   const setMeal = useMutation(api.mealPlans.setMeal);
 
   // Handle recipe selection

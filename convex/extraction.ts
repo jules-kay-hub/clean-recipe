@@ -29,6 +29,12 @@ import {
 import { hashUrl, isValidUrl } from "./lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════
+// RATE LIMITING CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+const DAILY_EXTRACTION_LIMIT = 50; // Max extractions per user per 24 hours
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN EXTRACTION ACTION
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -61,6 +67,31 @@ export const extractRecipe = action({
         error: {
           code: "INVALID_URL",
           message: "Please provide a valid HTTP or HTTPS URL",
+          retryable: false,
+        },
+        cached: false,
+        metadata: {
+          extractionTimeMs: Date.now() - startTime,
+          source: "error",
+          agentsUsed: [],
+        },
+      };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RATE LIMITING
+    // ─────────────────────────────────────────────────────────────────────────
+    const recentCount = await ctx.runQuery(internal.recipes.countRecentExtractions, {
+      userId,
+      hoursAgo: 24,
+    });
+
+    if (recentCount >= DAILY_EXTRACTION_LIMIT) {
+      return {
+        success: false,
+        error: {
+          code: "RATE_LIMITED",
+          message: `Daily extraction limit reached (${DAILY_EXTRACTION_LIMIT} recipes per 24 hours). Please try again later.`,
           retryable: false,
         },
         cached: false,

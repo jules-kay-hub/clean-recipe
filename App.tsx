@@ -1,9 +1,12 @@
 // App.tsx
-// Main entry point for Julienned
+// Main entry point for Julienned with Clerk authentication
 
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
+import { ConvexProviderWithClerk } from 'convex/react-clerk';
+import { ConvexReactClient } from 'convex/react';
+import * as SecureStore from 'expo-secure-store';
 import {
   useFonts,
   Inter_400Regular,
@@ -17,17 +20,62 @@ import {
 } from '@expo-google-fonts/fraunces';
 import { ThemeProvider } from './src/hooks/useTheme';
 import { OfflineProvider } from './src/context/OfflineContext';
+import { AuthProvider } from './src/context/AuthContext';
 import { RootNavigator } from './src/navigation';
 
-// Initialize Convex client
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Clerk configuration
+const clerkPublishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+// Convex configuration
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 
-// Show error if Convex URL not configured
+// Show warning if environment variables not configured
+if (!clerkPublishableKey) {
+  console.warn('EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY not set. See .env.example');
+}
 if (!convexUrl) {
   console.warn('EXPO_PUBLIC_CONVEX_URL not set. See .env.example');
 }
 
+// Initialize Convex client
 const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECURE TOKEN CACHE FOR CLERK
+// ═══════════════════════════════════════════════════════════════════════════
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch (error) {
+      console.error('SecureStore getToken error:', error);
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      await SecureStore.setItemAsync(key, value);
+    } catch (error) {
+      console.error('SecureStore saveToken error:', error);
+    }
+  },
+  async clearToken(key: string) {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch (error) {
+      console.error('SecureStore clearToken error:', error);
+    }
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN APP COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -48,31 +96,48 @@ export default function App() {
     );
   }
 
-  // Show setup instructions if Convex not configured
-  if (!convex) {
+  // Show setup instructions if environment not configured
+  if (!clerkPublishableKey || !convex) {
+    const steps: string[] = [];
+    if (!clerkPublishableKey) {
+      steps.push('Add EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY to .env.local');
+    }
+    if (!convexUrl) {
+      steps.push('Run: npx convex dev');
+      steps.push('Add EXPO_PUBLIC_CONVEX_URL to .env.local');
+    }
+    steps.push('Restart the app');
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Setup Required</Text>
         <Text style={styles.text}>
-          1. Run: npx convex dev{'\n'}
-          2. Copy .env.example to .env{'\n'}
-          3. Add your EXPO_PUBLIC_CONVEX_URL{'\n'}
-          4. Restart the app
+          {steps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
         </Text>
       </View>
     );
   }
 
   return (
-    <ConvexProvider client={convex}>
-      <ThemeProvider>
-        <OfflineProvider>
-          <RootNavigator />
-        </OfflineProvider>
-      </ThemeProvider>
-    </ConvexProvider>
+    <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
+      <ClerkLoaded>
+        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          <ThemeProvider>
+            <OfflineProvider>
+              <AuthProvider>
+                <RootNavigator />
+              </AuthProvider>
+            </OfflineProvider>
+          </ThemeProvider>
+        </ConvexProviderWithClerk>
+      </ClerkLoaded>
+    </ClerkProvider>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STYLES
+// ═══════════════════════════════════════════════════════════════════════════
 
 const styles = StyleSheet.create({
   loadingContainer: {
