@@ -1,0 +1,32 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept C: Ultra Simple - Filled Shield with Knife (RECOMMENDED) -->
+  <!-- Cleanest silhouette - instantly recognizable -->
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="#F5F0EB"/>
+
+  <!-- Solid shield shape -->
+  <path d="M512 100
+           Q760 100, 900 200
+           L900 520
+           Q900 760, 700 900
+           L512 980
+           L324 900
+           Q124 760, 124 520
+           L124 200
+           Q264 100, 512 100 Z"
+        fill="#2D4A3E"/>
+
+  <!-- Negative space knife cutout -->
+  <path d="M512 220
+           L580 280
+           L580 640
+           L550 700
+           L550 820
+           L474 820
+           L474 700
+           L444 640
+           L444 280
+           Z"
+        fill="#F5F0EB"/>
+</svg>

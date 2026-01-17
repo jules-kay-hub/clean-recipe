@@ -161,6 +161,8 @@ export function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) 
                     keyboardType="email-address"
                     textContentType="emailAddress"
                     editable={!isLoading}
+                    selectionColor={colors.primary}
+                    cursorColor={colors.primary}
                   />
                 </View>
               </View>
@@ -215,6 +217,8 @@ export function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) 
                     maxLength={6}
                     textAlign="center"
                     editable={!isLoading}
+                    selectionColor={colors.primary}
+                    cursorColor={colors.primary}
                   />
                 </View>
               </View>
@@ -275,6 +279,8 @@ export function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) 
                     secureTextEntry={!showPassword}
                     textContentType="newPassword"
                     editable={!isLoading}
+                    selectionColor={colors.primary}
+                    cursorColor={colors.primary}
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}

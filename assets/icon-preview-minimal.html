@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Julienned - Minimal Icon Concepts</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F5F0EB;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      color: #2D4A3E;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #6B6B6B;
+      font-size: 15px;
+      margin-bottom: 40px;
+    }
+    .concepts {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .concept {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      text-align: center;
+      width: 320px;
+    }
+    .concept.recommended {
+      border: 3px solid #2D4A3E;
+      position: relative;
+    }
+    .concept.recommended::before {
+      content: 'RECOMMENDED';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2D4A3E;
+      color: white;
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .icon-container {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 20px;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    .icon-container img {
+      width: 100%;
+      height: 100%;
+    }
+    h2 {
+      color: #2D4A3E;
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+    .theme {
+      color: #6B6B6B;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .color-variants {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 16px;
+      background: #f8f8f8;
+      border-radius: 12px;
+    }
+    .color-variants span {
+      display: block;
+      font-size: 10px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+    .variant {
+      text-align: center;
+    }
+    .variant-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .variant-icon.dark { background: #1a1a1a; }
+    .variant-icon.light { background: #ffffff; border: 1px solid #e0e0e0; }
+    .variant-icon.forest { background: #2D4A3E; }
+    .sizes {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+    .size-preview {
+      text-align: center;
+    }
+    .size-preview img {
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .size-preview span {
+      display: block;
+      font-size: 10px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .pros {
+      text-align: left;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+    .pros li {
+      padding: 3px 0;
+      list-style: none;
+    }
+    .pros li::before {
+      content: '✓ ';
+      color: #2D4A3E;
+    }
+  </style>
+</head>
+<body>
+  <h1>Minimal Icon Concepts</h1>
+  <p class="subtitle">Single-color designs that work at any size</p>
+
+  <div class="concepts">
+    <!-- Concept A -->
+    <div class="concept">
+      <div class="icon-container">
+        <img src="icon-minimal-a.svg" alt="Concept A">
+      </div>
+      <h2>A: Shield Outline + Knife</h2>
+      <p class="theme">Hollow shield with solid knife</p>
+      <ul class="pros">
+        <li>Classic badge/crest feel</li>
+        <li>Clear shield shape</li>
+        <li>More detailed than C</li>
+      </ul>
+      <div class="sizes">
+        <div class="size-preview">
+          <img src="icon-minimal-a.svg" width="64" height="64">
+          <span>64px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-minimal-a.svg" width="32" height="32">
+          <span>32px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-minimal-a.svg" width="20" height="20">
+          <span>20px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept B -->
+    <div class="concept">
+      <div class="icon-container">
+        <img src="icon-minimal-b.svg" alt="Concept B">
+      </div>
+      <h2>B: Knife Slicing Card</h2>
+      <p class="theme">Action-focused extraction</p>
+      <ul class="pros">
+        <li>Shows the "cut through clutter" action</li>
+        <li>Literal representation</li>
+        <li>Dynamic angle</li>
+      </ul>
+      <div class="sizes">
+        <div class="size-preview">
+          <img src="icon-minimal-b.svg" width="64" height="64">
+          <span>64px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-minimal-b.svg" width="32" height="32">
+          <span>32px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-minimal-b.svg" width="20" height="20">
+          <span>20px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept C - Recommended -->
+    <div class="concept recommended">
+      <div class="icon-container">
+        <img src="icon-minimal-c.svg" alt="Concept C">
+      </div>
+      <h2>C: Solid Shield + Cutout</h2>
+      <p class="theme">Cleanest silhouette</p>
+      <ul class="pros">
+        <li>Instantly recognizable shape</li>
+        <li>Works at ANY size</li>
+        <li>Bold, confident, simple</li>
+        <li>Negative space = clean extraction</li>
+      </ul>
+      <div class="sizes">
+        <div class="size-preview">
+          <img src="icon-minimal-c.svg" width="64" height="64">
+          <span>64px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-minimal-c.svg" width="32" height="32">
+          <span>32px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-minimal-c.svg" width="20" height="20">
+          <span>20px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

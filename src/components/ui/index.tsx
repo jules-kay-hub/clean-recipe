@@ -170,7 +170,7 @@ export function Button({
       style={({ pressed }) => [
         {
           backgroundColor: getBackgroundColor(),
-          borderRadius: borderRadius.sm,
+          borderRadius: borderRadius.md,
           borderWidth: variant === 'secondary' ? 2 : 0,
           borderColor: getBorderColor(),
           flexDirection: 'row',
@@ -260,7 +260,7 @@ export function Input({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.inputBackground,
-        borderRadius: borderRadius.sm,
+        borderRadius: borderRadius.md,
         borderWidth: 2,
         borderColor: error ? colors.error : isFocused ? colors.borderFocus : colors.border,
         paddingHorizontal: spacing.md,

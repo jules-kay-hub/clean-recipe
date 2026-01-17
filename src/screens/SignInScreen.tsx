@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSignIn, useOAuth } from '@clerk/clerk-expo';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as WebBrowser from 'expo-web-browser';
 import { useColors, useTheme } from '../hooks/useTheme';
@@ -47,6 +48,7 @@ export function SignInScreen({ navigation }: SignInScreenProps) {
   // OAuth hooks
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
   const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
+  const { startOAuthFlow: startFacebookOAuth } = useOAuth({ strategy: 'oauth_facebook' });
 
   // Email/password sign in
   const handleSignIn = useCallback(async () => {
@@ -119,6 +121,27 @@ export function SignInScreen({ navigation }: SignInScreenProps) {
     }
   }, [startAppleOAuth]);
 
+  // Facebook OAuth
+  const handleFacebookSignIn = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { createdSessionId, setActive: oauthSetActive } = await startFacebookOAuth();
+
+      if (createdSessionId && oauthSetActive) {
+        await oauthSetActive({ session: createdSessionId });
+      }
+    } catch (err: any) {
+      console.error('Facebook OAuth error:', err);
+      if (!err.message?.includes('cancelled')) {
+        setError('Facebook sign in failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startFacebookOAuth]);
+
   const isFormValid = email.length > 0 && password.length > 0;
 
   return (
@@ -147,6 +170,40 @@ export function SignInScreen({ navigation }: SignInScreenProps) {
 
           {/* Form */}
           <View style={styles.form}>
+            {/* OAuth Icon Buttons */}
+            <View style={styles.oauthIconsContainer}>
+              <TouchableOpacity
+                style={[styles.oauthIconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-google" size={24} color={colors.text} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.oauthIconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={handleAppleSignIn}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-apple" size={24} color={colors.text} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.oauthIconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={handleFacebookSignIn}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-facebook" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>or</Text>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            </View>
+
             {/* Email Input */}
             <View style={styles.inputContainer}>
               <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -162,6 +219,8 @@ export function SignInScreen({ navigation }: SignInScreenProps) {
                   keyboardType="email-address"
                   textContentType="emailAddress"
                   editable={!isLoading}
+                  selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
               </View>
             </View>
@@ -179,6 +238,8 @@ export function SignInScreen({ navigation }: SignInScreenProps) {
                   secureTextEntry={!showPassword}
                   textContentType="password"
                   editable={!isLoading}
+                  selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -228,36 +289,6 @@ export function SignInScreen({ navigation }: SignInScreenProps) {
                 </Text>
               )}
             </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>or</Text>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            </View>
-
-            {/* OAuth Buttons */}
-            <TouchableOpacity
-              style={[styles.oauthButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              <Text style={[styles.oauthButtonText, { color: colors.text }]}>
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
-
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity
-                style={[styles.oauthButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                onPress={handleAppleSignIn}
-                disabled={isLoading}
-              >
-                <Text style={[styles.oauthButtonText, { color: colors.text }]}>
-                  Continue with Apple
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           {/* Sign Up Link */}
@@ -368,17 +399,19 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.caption,
     marginHorizontal: spacing.md,
   },
-  oauthButton: {
-    height: 52,
+  oauthIconsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  oauthIconButton: {
+    width: 56,
+    height: 56,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    marginBottom: spacing.sm,
-  },
-  oauthButtonText: {
-    fontFamily: typography.fonts.sansMedium,
-    fontSize: typography.sizes.body,
   },
   signUpContainer: {
     flexDirection: 'row',

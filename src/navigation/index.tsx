@@ -6,16 +6,16 @@ import { View, Text, StyleSheet, Pressable, Platform, Animated, ActivityIndicato
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Link, BookOpen, Calendar, ShoppingCart, Settings } from 'lucide-react-native';
+import { BookOpen, Calendar, ShoppingCart, Settings } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors, useTheme } from '../hooks/useTheme';
 import { typography, spacing, borderRadius } from '../styles/theme';
 import { TabBarVisibilityProvider, useOptionalTabBarVisibility } from '../hooks/useTabBarVisibility';
 import { useAuth } from '../context/AuthContext';
+import { featureFlags } from '../config/featureFlags';
 
 // Screens
-import { ExtractScreen } from '../screens/ExtractScreen';
 import { RecipesScreen } from '../screens/RecipesScreen';
 import { RecipeDetailScreen } from '../screens/RecipeDetailScreen';
 import { MealPlannerScreen } from '../screens/MealPlannerScreen';
@@ -53,7 +53,6 @@ export type RootStackParamList = {
 };
 
 export type TabParamList = {
-  Extract: undefined;
   Recipes: undefined;
   MealPlanner: undefined;
   ShoppingList: {
@@ -71,13 +70,15 @@ const Tab = createBottomTabNavigator<TabParamList>();
 // TAB CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-const TAB_CONFIG = [
-  { name: 'Extract' as const, Icon: Link, label: 'Extract' },
-  { name: 'Recipes' as const, Icon: BookOpen, label: 'Recipes' },
-  { name: 'MealPlanner' as const, Icon: Calendar, label: 'Plan' },
-  { name: 'ShoppingList' as const, Icon: ShoppingCart, label: 'Shop' },
-  { name: 'Settings' as const, Icon: Settings, label: 'Settings' },
+const ALL_TABS = [
+  { name: 'Recipes' as const, Icon: BookOpen, label: 'Recipes', enabled: true },
+  { name: 'MealPlanner' as const, Icon: Calendar, label: 'Plan', enabled: featureFlags.mealPlanner },
+  { name: 'ShoppingList' as const, Icon: ShoppingCart, label: 'Shop', enabled: featureFlags.shoppingList },
+  { name: 'Settings' as const, Icon: Settings, label: 'Settings', enabled: true },
 ];
+
+// Filter to only enabled tabs
+const TAB_CONFIG = ALL_TABS.filter(tab => tab.enabled);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FLOATING TAB BAR COMPONENT
@@ -109,8 +110,8 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   // Frosted glass background - semi-transparent with blur
   const frostedBackground = isDark
-    ? 'rgba(30, 30, 30, 0.85)'  // Dark mode: dark semi-transparent
-    : 'rgba(255, 255, 255, 0.85)'; // Light mode: white semi-transparent
+    ? 'rgba(30, 30, 30, 0.75)'  // Dark mode: dark semi-transparent
+    : 'rgba(255, 255, 255, 0.7)'; // Light mode: more translucent white
 
   const borderColor = isDark
     ? 'rgba(255, 255, 255, 0.1)'
@@ -223,15 +224,19 @@ function MainTabs() {
   return (
     <TabBarVisibilityProvider>
       <Tab.Navigator
+        initialRouteName="Recipes"
         tabBar={(props) => <FloatingTabBar {...props} />}
         screenOptions={{
           headerShown: false,
         }}
       >
-        <Tab.Screen name="Extract" component={ExtractScreen} />
         <Tab.Screen name="Recipes" component={RecipesScreen} />
-        <Tab.Screen name="MealPlanner" component={MealPlannerScreen} />
-        <Tab.Screen name="ShoppingList" component={ShoppingListScreen} />
+        {featureFlags.mealPlanner && (
+          <Tab.Screen name="MealPlanner" component={MealPlannerScreen} />
+        )}
+        {featureFlags.shoppingList && (
+          <Tab.Screen name="ShoppingList" component={ShoppingListScreen} />
+        )}
         <Tab.Screen name="Settings" component={SettingsScreen} />
       </Tab.Navigator>
     </TabBarVisibilityProvider>
@@ -364,14 +369,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: spacing.lg,
+    alignItems: 'center', // Center the compact bar
   },
   floatingBar: {
     flexDirection: 'row',
     borderRadius: 9999, // Pill shape
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    justifyContent: 'space-around',
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs, // Compact spacing between tabs
     alignItems: 'center',
   },
   tabItem: {

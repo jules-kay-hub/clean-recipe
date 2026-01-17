@@ -1,0 +1,87 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept A: Diagonal Knife Slice Through Recipe Card -->
+  <!-- Theme: Bold extraction action - knife cutting through clutter -->
+
+  <!-- Background - Linen -->
+  <rect width="1024" height="1024" rx="224" fill="#F5F0EB"/>
+
+  <!-- Subtle shadow for depth -->
+  <ellipse cx="512" cy="880" rx="280" ry="30" fill="rgba(0,0,0,0.06)"/>
+
+  <!-- Recipe Card (back portion - being cut away) -->
+  <g opacity="0.4">
+    <rect x="280" y="180" width="464" height="580" rx="24" fill="#2D4A3E"/>
+    <!-- Card lines representing text/clutter -->
+    <rect x="320" y="240" width="200" height="16" rx="8" fill="#4A7A6A"/>
+    <rect x="320" y="280" width="280" height="12" rx="6" fill="#4A7A6A"/>
+    <rect x="320" y="310" width="260" height="12" rx="6" fill="#4A7A6A"/>
+    <rect x="320" y="340" width="240" height="12" rx="6" fill="#4A7A6A"/>
+  </g>
+
+  <!-- Recipe Card (front portion - the extracted recipe) -->
+  <rect x="280" y="180" width="464" height="580" rx="24" fill="#FFFFFF"
+        clip-path="polygon(0 0, 100% 0, 100% 100%, 60% 100%)"/>
+  <g clip-path="url(#clipCard)">
+    <rect x="280" y="180" width="464" height="580" rx="24" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Clean recipe content on white card -->
+  <rect x="320" y="240" width="180" height="20" rx="10" fill="#2D4A3E"/>
+  <rect x="320" y="290" width="300" height="10" rx="5" fill="#E5E0DB"/>
+  <rect x="320" y="320" width="280" height="10" rx="5" fill="#E5E0DB"/>
+  <rect x="320" y="350" width="260" height="10" rx="5" fill="#E5E0DB"/>
+
+  <!-- Ingredient dots -->
+  <circle cx="340" cy="420" r="8" fill="#B87333"/>
+  <rect x="365" y="412" width="200" height="16" rx="8" fill="#4A7A6A"/>
+  <circle cx="340" cy="460" r="8" fill="#B87333"/>
+  <rect x="365" y="452" width="180" height="16" rx="8" fill="#4A7A6A"/>
+  <circle cx="340" cy="500" r="8" fill="#B87333"/>
+  <rect x="365" y="492" width="220" height="16" rx="8" fill="#4A7A6A"/>
+
+  <!-- Step numbers -->
+  <circle cx="340" cy="580" r="14" fill="#2D4A3E"/>
+  <text x="340" y="586" font-size="18" fill="white" text-anchor="middle" font-weight="bold">1</text>
+  <rect x="370" y="568" width="280" height="24" rx="4" fill="#E5E0DB"/>
+
+  <circle cx="340" cy="640" r="14" fill="#2D4A3E"/>
+  <text x="340" y="646" font-size="18" fill="white" text-anchor="middle" font-weight="bold">2</text>
+  <rect x="370" y="628" width="260" height="24" rx="4" fill="#E5E0DB"/>
+
+  <!-- Chef's Knife - Diagonal slash -->
+  <g transform="rotate(-45, 512, 512)">
+    <!-- Blade -->
+    <path d="M512 80
+             L560 120
+             L560 680
+             Q560 720, 530 750
+             L512 770
+             L494 750
+             Q464 720, 464 680
+             L464 120
+             Z"
+          fill="linear-gradient(180deg, #E8E8E8 0%, #C0C0C0 100%)"/>
+    <!-- Blade edge highlight -->
+    <path d="M512 80 L530 100 L530 680 Q530 710, 512 740 L512 80Z"
+          fill="#F5F5F5"/>
+    <!-- Blade shadow -->
+    <path d="M512 80 L494 100 L494 680 Q494 710, 512 740 L512 80Z"
+          fill="#A0A0A0"/>
+
+    <!-- Bolster (metal part between blade and handle) -->
+    <rect x="480" y="770" width="64" height="30" rx="4" fill="#888888"/>
+    <rect x="488" y="775" width="48" height="20" rx="2" fill="#666666"/>
+
+    <!-- Handle - Forest Green -->
+    <rect x="488" y="800" width="48" height="140" rx="8" fill="#2D4A3E"/>
+    <!-- Handle rivets - Copper -->
+    <circle cx="512" cy="830" r="8" fill="#B87333"/>
+    <circle cx="512" cy="870" r="8" fill="#B87333"/>
+    <circle cx="512" cy="910" r="8" fill="#B87333"/>
+  </g>
+
+  <!-- Slice effect line -->
+  <line x1="180" y1="844" x2="844" y2="180"
+        stroke="#B87333" stroke-width="4" stroke-linecap="round"
+        stroke-dasharray="20,10" opacity="0.6"/>
+</svg>

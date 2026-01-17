@@ -15,14 +15,16 @@ interface URLInputProps {
   isLoading?: boolean;
   error?: string;
   clearTrigger?: number; // Increment this to clear the URL input
-  autoFocus?: boolean; // Auto-focus input when true
+  autoFocus?: boolean; // Auto-focus input on mount
+  focusTrigger?: number; // Increment this to focus the input
 }
 
-export function URLInput({ onExtract, isLoading = false, error, clearTrigger, autoFocus = false }: URLInputProps) {
+export function URLInput({ onExtract, isLoading = false, error, clearTrigger, autoFocus = false, focusTrigger }: URLInputProps) {
   const colors = useColors();
   const [url, setUrl] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const prevClearTrigger = useRef(clearTrigger);
+  const prevFocusTrigger = useRef(focusTrigger);
   const inputRef = useRef<TextInput>(null);
 
   // Clear URL when clearTrigger changes
@@ -33,7 +35,18 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger, au
     }
   }, [clearTrigger]);
 
-  // Handle autoFocus
+  // Focus input when focusTrigger changes
+  useEffect(() => {
+    if (focusTrigger !== undefined && focusTrigger !== prevFocusTrigger.current) {
+      prevFocusTrigger.current = focusTrigger;
+      // Small delay to ensure screen transition is complete
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [focusTrigger]);
+
+  // Handle autoFocus on mount
   useEffect(() => {
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
@@ -78,7 +91,7 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger, au
           ]}
         >
           {/* URL Icon */}
-          <View style={{ marginRight: spacing.sm }}>
+          <View style={styles.iconContainer}>
             <Link size={20} color={isFocused ? colors.buttonPrimary : colors.textSecondary} strokeWidth={1.5} />
           </View>
 
@@ -87,7 +100,7 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger, au
             ref={inputRef}
             value={url}
             onChangeText={setUrl}
-            placeholder="Paste recipe URL..."
+            placeholder=""
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -134,7 +147,7 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger, au
           {isLoading ? (
             <Text style={styles.loadingText}>⏳</Text>
           ) : (
-            <Text style={[styles.extractText, { color: '#FFFFFF' }]}>
+            <Text style={[styles.extractText, { color: colors.textInverse }]}>
               Extract
             </Text>
           )}
@@ -158,30 +171,34 @@ export function URLInput({ onExtract, isLoading = false, error, clearTrigger, au
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.lg,
+    width: '100%',
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   inputContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.full,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  iconContainer: {
+    marginRight: spacing.sm,
   },
   input: {
     flex: 1,
     fontFamily: typography.fonts.sans,
     fontSize: typography.sizes.body,
-    paddingVertical: spacing.md,
-    minHeight: touchTargets.recommended,
+    height: '100%',
   },
   clearButton: {
-    padding: spacing.sm,
+    padding: spacing.xs,
+    marginLeft: spacing.xs,
   },
   clearText: {
     fontSize: 16,
@@ -189,11 +206,10 @@ const styles = StyleSheet.create({
   },
   extractButton: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.recommended,
+    borderRadius: borderRadius.full,
+    height: 48,
   },
   extractText: {
     fontFamily: typography.fonts.sansBold,

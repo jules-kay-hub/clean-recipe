@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { useSignUp, useOAuth } from '@clerk/clerk-expo';
 import { Mail, Lock, User, Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as WebBrowser from 'expo-web-browser';
 import { useColors, useTheme } from '../hooks/useTheme';
@@ -51,6 +52,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   // OAuth hooks
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
   const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
+  const { startOAuthFlow: startFacebookOAuth } = useOAuth({ strategy: 'oauth_facebook' });
 
   // Email/password sign up
   const handleSignUp = useCallback(async () => {
@@ -161,6 +163,27 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
     }
   }, [startAppleOAuth]);
 
+  // Facebook OAuth
+  const handleFacebookSignUp = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { createdSessionId, setActive: oauthSetActive } = await startFacebookOAuth();
+
+      if (createdSessionId && oauthSetActive) {
+        await oauthSetActive({ session: createdSessionId });
+      }
+    } catch (err: any) {
+      console.error('Facebook OAuth error:', err);
+      if (!err.message?.includes('cancelled')) {
+        setError('Facebook sign up failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startFacebookOAuth]);
+
   const isFormValid = email.length > 0 && password.length >= 8;
   const isVerificationValid = verificationCode.length === 6;
 
@@ -211,6 +234,8 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
                     maxLength={6}
                     textAlign="center"
                     editable={!isLoading}
+                    selectionColor={colors.primary}
+                    cursorColor={colors.primary}
                   />
                 </View>
               </View>
@@ -286,6 +311,40 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
 
           {/* Form */}
           <View style={styles.form}>
+            {/* OAuth Icon Buttons */}
+            <View style={styles.oauthIconsContainer}>
+              <TouchableOpacity
+                style={[styles.oauthIconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={handleGoogleSignUp}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-google" size={24} color={colors.text} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.oauthIconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={handleAppleSignUp}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-apple" size={24} color={colors.text} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.oauthIconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={handleFacebookSignUp}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-facebook" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>or</Text>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            </View>
+
             {/* Name Input */}
             <View style={styles.inputContainer}>
               <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -299,6 +358,8 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
                   autoCapitalize="words"
                   textContentType="name"
                   editable={!isLoading}
+                  selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
               </View>
             </View>
@@ -318,6 +379,8 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
                   keyboardType="email-address"
                   textContentType="emailAddress"
                   editable={!isLoading}
+                  selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
               </View>
             </View>
@@ -335,6 +398,8 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
                   secureTextEntry={!showPassword}
                   textContentType="newPassword"
                   editable={!isLoading}
+                  selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -374,36 +439,6 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
                 </Text>
               )}
             </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>or</Text>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            </View>
-
-            {/* OAuth Buttons */}
-            <TouchableOpacity
-              style={[styles.oauthButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={handleGoogleSignUp}
-              disabled={isLoading}
-            >
-              <Text style={[styles.oauthButtonText, { color: colors.text }]}>
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
-
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity
-                style={[styles.oauthButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                onPress={handleAppleSignUp}
-                disabled={isLoading}
-              >
-                <Text style={[styles.oauthButtonText, { color: colors.text }]}>
-                  Continue with Apple
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           {/* Sign In Link */}
@@ -532,17 +567,19 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.caption,
     marginHorizontal: spacing.md,
   },
-  oauthButton: {
-    height: 52,
+  oauthIconsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  oauthIconButton: {
+    width: 56,
+    height: 56,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    marginBottom: spacing.sm,
-  },
-  oauthButtonText: {
-    fontFamily: typography.fonts.sansMedium,
-    fontSize: typography.sizes.body,
   },
   signUpContainer: {
     flexDirection: 'row',

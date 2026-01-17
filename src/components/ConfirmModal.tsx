@@ -157,7 +157,7 @@ export function ConfirmModal({
                 },
               ]}
             >
-              <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>
+              <Text style={[styles.buttonText, { color: colors.textInverse }]}>
                 {confirmText}
               </Text>
             </Pressable>

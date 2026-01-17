@@ -36,6 +36,9 @@ Thumbs.db
 # Testing
 coverage/
 
+# Maestro UI Tests
+.maestro/screenshots/
+
 # Convex
 .convex/
 

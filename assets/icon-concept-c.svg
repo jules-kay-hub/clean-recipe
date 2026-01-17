@@ -1,0 +1,138 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept C: Chef Knight Shield Crest (RECOMMENDED) -->
+  <!-- Theme: Premium heraldic badge - protecting recipes, culinary mastery -->
+
+  <!-- Background - Linen -->
+  <rect width="1024" height="1024" rx="224" fill="#F5F0EB"/>
+
+  <!-- Shield shape - Forest Green -->
+  <path d="M512 100
+           Q680 100, 800 160
+           L800 480
+           Q800 680, 660 800
+           L512 920
+           L364 800
+           Q224 680, 224 480
+           L224 160
+           Q344 100, 512 100 Z"
+        fill="#2D4A3E"/>
+
+  <!-- Shield inner border - lighter forest -->
+  <path d="M512 140
+           Q660 140, 760 195
+           L760 475
+           Q760 650, 635 760
+           L512 865
+           L389 760
+           Q264 650, 264 475
+           L264 195
+           Q364 140, 512 140 Z"
+        fill="none" stroke="#4A7A6A" stroke-width="6"/>
+
+  <!-- Recipe card behind knife -->
+  <rect x="340" y="240" width="344" height="440" rx="16" fill="#FFFFFF" opacity="0.95"/>
+
+  <!-- Card content - clean recipe representation -->
+  <!-- Title area -->
+  <rect x="380" y="280" width="180" height="16" rx="8" fill="#2D4A3E"/>
+
+  <!-- Divider line -->
+  <line x1="380" y1="320" x2="624" y2="320" stroke="#E5E0DB" stroke-width="2"/>
+
+  <!-- Ingredients section -->
+  <circle cx="400" cy="360" r="6" fill="#B87333"/>
+  <rect x="420" y="352" width="140" height="14" rx="7" fill="#4A7A6A" opacity="0.7"/>
+
+  <circle cx="400" cy="395" r="6" fill="#B87333"/>
+  <rect x="420" y="387" width="120" height="14" rx="7" fill="#4A7A6A" opacity="0.7"/>
+
+  <circle cx="400" cy="430" r="6" fill="#B87333"/>
+  <rect x="420" y="422" width="150" height="14" rx="7" fill="#4A7A6A" opacity="0.7"/>
+
+  <!-- Divider -->
+  <line x1="380" y1="465" x2="624" y2="465" stroke="#E5E0DB" stroke-width="2"/>
+
+  <!-- Steps section -->
+  <circle cx="400" cy="505" r="12" fill="#2D4A3E"/>
+  <text x="400" y="510" font-size="14" fill="white" text-anchor="middle" font-weight="bold">1</text>
+  <rect x="425" y="493" width="180" height="22" rx="4" fill="#E5E0DB"/>
+
+  <circle cx="400" cy="555" r="12" fill="#2D4A3E"/>
+  <text x="400" y="560" font-size="14" fill="white" text-anchor="middle" font-weight="bold">2</text>
+  <rect x="425" y="543" width="160" height="22" rx="4" fill="#E5E0DB"/>
+
+  <circle cx="400" cy="605" r="12" fill="#2D4A3E"/>
+  <text x="400" y="610" font-size="14" fill="white" text-anchor="middle" font-weight="bold">3</text>
+  <rect x="425" y="593" width="170" height="22" rx="4" fill="#E5E0DB"/>
+
+  <!-- Chef's Knife - Angled across card -->
+  <g transform="rotate(-30, 512, 450)">
+    <!-- Blade shadow -->
+    <ellipse cx="515" cy="455" rx="30" ry="220" fill="rgba(0,0,0,0.1)"/>
+
+    <!-- Blade -->
+    <path d="M512 180
+             C545 180, 555 200, 555 230
+             L555 550
+             Q555 600, 535 630
+             L512 660
+             L489 630
+             Q469 600, 469 550
+             L469 230
+             C469 200, 479 180, 512 180 Z"
+          fill="#D8D8D8"/>
+
+    <!-- Blade highlight -->
+    <path d="M512 180 C535 180, 543 195, 543 225 L543 545 Q543 590, 527 618 L512 645 L512 180Z"
+          fill="#F0F0F0"/>
+
+    <!-- Blade shadow side -->
+    <path d="M512 180 C489 180, 481 195, 481 225 L481 545 Q481 590, 497 618 L512 645 L512 180Z"
+          fill="#A8A8A8"/>
+
+    <!-- Blade tip highlight -->
+    <path d="M512 185 L525 210 L512 220 L499 210 Z" fill="#FFFFFF"/>
+
+    <!-- Bolster -->
+    <rect x="488" y="660" width="48" height="24" rx="4" fill="#606060"/>
+    <rect x="492" y="664" width="40" height="16" rx="2" fill="#505050"/>
+
+    <!-- Handle - Premium Forest Green -->
+    <rect x="492" y="684" width="40" height="150" rx="6" fill="#2D4A3E"/>
+
+    <!-- Handle contour for 3D effect -->
+    <rect x="492" y="684" width="20" height="150" rx="6" fill="#3A5A4A"/>
+
+    <!-- Copper rivets -->
+    <circle cx="512" cy="710" r="8" fill="#B87333"/>
+    <circle cx="512" cy="710" r="4" fill="#D4A574"/>
+
+    <circle cx="512" cy="760" r="8" fill="#B87333"/>
+    <circle cx="512" cy="760" r="4" fill="#D4A574"/>
+
+    <circle cx="512" cy="810" r="8" fill="#B87333"/>
+    <circle cx="512" cy="810" r="4" fill="#D4A574"/>
+  </g>
+
+  <!-- Banner ribbon at bottom -->
+  <path d="M280 820
+           Q320 800, 400 810
+           L512 830
+           L624 810
+           Q704 800, 744 820
+           L744 860
+           Q704 840, 624 850
+           L512 870
+           L400 850
+           Q320 840, 280 860
+           Z"
+        fill="#B87333"/>
+
+  <!-- Banner highlight -->
+  <path d="M300 825 Q340 810, 400 818 L512 835 L400 818 Q340 810, 300 825Z"
+        fill="#D4A574" opacity="0.5"/>
+
+  <!-- Banner shadow -->
+  <path d="M724 825 Q684 810, 624 818 L512 835 L624 818 Q684 810, 724 825Z"
+        fill="#8B5A2B" opacity="0.3"/>
+</svg>

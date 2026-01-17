@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Julienned Icon Concepts</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F5F0EB;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      color: #2D4A3E;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #6B6B6B;
+      font-size: 16px;
+      margin-bottom: 48px;
+    }
+    .concepts {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+    .concept {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 380px;
+    }
+    .concept.recommended {
+      border: 3px solid #B87333;
+      position: relative;
+    }
+    .concept.recommended::before {
+      content: 'RECOMMENDED';
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #B87333;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .icon-container {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 24px;
+      border-radius: 44px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .icon-container img {
+      width: 100%;
+      height: 100%;
+    }
+    h2 {
+      color: #2D4A3E;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .theme {
+      color: #B87333;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .description {
+      color: #6B6B6B;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .pros {
+      text-align: left;
+      background: #F5F0EB;
+      padding: 16px;
+      border-radius: 12px;
+    }
+    .pros h4 {
+      color: #2D4A3E;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .pros ul {
+      list-style: none;
+      padding: 0;
+    }
+    .pros li {
+      color: #4A7A6A;
+      font-size: 13px;
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .pros li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #B87333;
+      font-weight: bold;
+    }
+    .sizes {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #E5E0DB;
+    }
+    .size-preview {
+      text-align: center;
+    }
+    .size-preview img {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .size-preview span {
+      display: block;
+      font-size: 11px;
+      color: #6B6B6B;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Julienned Icon Concepts</h1>
+  <p class="subtitle">Chef Knight Knife + Recipe Card Theme</p>
+
+  <div class="concepts">
+    <!-- Concept A -->
+    <div class="concept">
+      <div class="icon-container">
+        <img src="icon-concept-a.svg" alt="Concept A">
+      </div>
+      <h2>Concept A: Diagonal Slash</h2>
+      <p class="theme">Bold Extraction Action</p>
+      <p class="description">
+        A chef's knife slicing diagonally through a recipe card. The faded portion represents
+        the clutter being cut away, revealing the clean recipe underneath.
+      </p>
+      <div class="pros">
+        <h4>Strengths</h4>
+        <ul>
+          <li>Dynamic, action-oriented feel</li>
+          <li>Clear visual metaphor for "extraction"</li>
+          <li>Shows before/after transformation</li>
+        </ul>
+      </div>
+      <div class="sizes">
+        <div class="size-preview">
+          <img src="icon-concept-a.svg" width="64" height="64">
+          <span>64px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-concept-a.svg" width="32" height="32">
+          <span>32px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept B -->
+    <div class="concept">
+      <div class="icon-container">
+        <img src="icon-concept-b.svg" alt="Concept B">
+      </div>
+      <h2>Concept B: Vertical Cut</h2>
+      <p class="theme">Precision Extraction</p>
+      <p class="description">
+        A vertical knife cleanly divides clutter from content. The left side fades
+        (ads, life stories) while the right side shows the clean, extracted recipe.
+      </p>
+      <div class="pros">
+        <h4>Strengths</h4>
+        <ul>
+          <li>Clean, balanced composition</li>
+          <li>Clear left/right contrast</li>
+          <li>Premium knife detailing</li>
+        </ul>
+      </div>
+      <div class="sizes">
+        <div class="size-preview">
+          <img src="icon-concept-b.svg" width="64" height="64">
+          <span>64px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-concept-b.svg" width="32" height="32">
+          <span>32px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept C - Recommended -->
+    <div class="concept recommended">
+      <div class="icon-container">
+        <img src="icon-concept-c.svg" alt="Concept C">
+      </div>
+      <h2>Concept C: Chef Knight Crest</h2>
+      <p class="theme">Premium Heraldic Badge</p>
+      <p class="description">
+        A shield-shaped crest with knife over recipe card, topped with a copper banner.
+        Evokes culinary mastery and protection — a "knight" guarding your recipes from clutter.
+      </p>
+      <div class="pros">
+        <h4>Strengths</h4>
+        <ul>
+          <li>Most distinctive silhouette</li>
+          <li>Aligns with "Julienned" premium brand</li>
+          <li>Memorable at all sizes</li>
+          <li>Shield = protection from ads/clutter</li>
+        </ul>
+      </div>
+      <div class="sizes">
+        <div class="size-preview">
+          <img src="icon-concept-c.svg" width="64" height="64">
+          <span>64px</span>
+        </div>
+        <div class="size-preview">
+          <img src="icon-concept-c.svg" width="32" height="32">
+          <span>32px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

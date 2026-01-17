@@ -1,0 +1,56 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept B: Clean Knife Cutting Card -->
+  <!-- Ultra minimal - knife slicing through paper -->
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="#F5F0EB"/>
+
+  <!-- Single color design -->
+  <g fill="#2D4A3E">
+    <!-- Recipe card (with cut) -->
+    <path d="M220 180
+             L540 180
+             L540 400
+             L700 400
+             L700 844
+             L220 844
+             Z
+             M300 260
+             L460 260
+             L460 320
+             L300 320
+             Z
+             M300 380
+             L460 380
+             L460 420
+             L300 420
+             Z
+             M300 520
+             L620 520
+             L620 560
+             L300 560
+             Z
+             M300 600
+             L580 600
+             L580 640
+             L300 640
+             Z
+             M300 680
+             L600 680
+             L600 720
+             L300 720
+             Z"/>
+
+    <!-- Diagonal knife -->
+    <path d="M580 100
+             L640 140
+             L820 700
+             L800 760
+             L780 820
+             L740 820
+             L720 760
+             L700 700
+             L520 140
+             Z"/>
+  </g>
+</svg>

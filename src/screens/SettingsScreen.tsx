@@ -286,8 +286,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: spacing.md,
-    paddingBottom: 100, // Account for floating tab bar
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: 120,
   },
   header: {
     marginBottom: spacing.lg,

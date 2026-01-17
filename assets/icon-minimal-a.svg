@@ -1,0 +1,42 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept A: Minimal Shield + Knife Silhouette -->
+  <!-- Single color, works in any color -->
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="#F5F0EB"/>
+
+  <!-- Simple shield with knife - one solid color -->
+  <g fill="#2D4A3E">
+    <!-- Shield outline -->
+    <path d="M512 120
+             Q720 120, 860 200
+             L860 500
+             Q860 720, 680 860
+             L512 960
+             L344 860
+             Q164 720, 164 500
+             L164 200
+             Q304 120, 512 120 Z
+             M512 200
+             Q340 200, 240 260
+             L240 480
+             Q240 660, 380 780
+             L512 870
+             L644 780
+             Q784 660, 784 480
+             L784 260
+             Q684 200, 512 200 Z"/>
+
+    <!-- Simple knife in center -->
+    <path d="M512 280
+             L560 320
+             L560 620
+             L540 660
+             L540 780
+             L484 780
+             L484 660
+             L464 620
+             L464 320
+             Z"/>
+  </g>
+</svg>

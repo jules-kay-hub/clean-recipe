@@ -19,7 +19,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.yourname.julienned",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch"]
+        "UIBackgroundModes": [
+          "fetch"
+        ]
       }
     },
     "android": {
@@ -28,14 +30,19 @@
         "backgroundColor": "#F5F0EB"
       },
       "package": "com.yourname.julienned",
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
